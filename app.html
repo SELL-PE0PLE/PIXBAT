@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pixel Battle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            padding: 8px 4px 80px 4px;
+            touch-action: pan-x pan-y;
+        }
+        #app {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 8px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .header button {
+            background: #16213e;
+            border: none;
+            color: #eee;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .header button:active { transform: scale(0.94); opacity: 0.7; }
+        .header .active-mode { background: #0f3460; border: 1px solid #e94560; }
+        .support-btn {
+            background: linear-gradient(145deg, #e94560, #c23152);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 60px;
+            font-size: 16px;
+            font-weight: 700;
+            box-shadow: 0 4px 20px rgba(233, 69, 96, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+            letter-spacing: 0.5px;
+            margin: 4px 0 2px 0;
+        }
+        .support-btn:hover { transform: scale(1.02); box-shadow: 0 6px 28px rgba(233, 69, 96, 0.6); }
+        .support-btn:active { transform: scale(0.96); }
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #0d0d1a;
+            border-radius: 16px;
+            overflow: hidden;
+            touch-action: none;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+            border: 1px solid #2a2a4a;
+        }
+        #pixelCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+            touch-action: none;
+            cursor: crosshair;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin: 6px 0;
+            width: 100%;
+        }
+        .controls button, .color-picker-wrap {
+            background: #16213e;
+            border: none;
+            color: #eee;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .controls button:active { transform: scale(0.92); }
+        .color-picker-wrap input[type="color"] {
+            width: 32px;
+            height: 32px;
+            border: 2px solid #3a3a5a;
+            border-radius: 50%;
+            padding: 0;
+            background: none;
+            cursor: pointer;
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #0f0f23;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 12px 0;
+            border-top: 1px solid #2a2a4a;
+            backdrop-filter: blur(6px);
+            z-index: 10;
+        }
+        .bottom-nav button {
+            background: transparent;
+            border: none;
+            color: #aaa;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 4px 16px;
+            border-radius: 30px;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .bottom-nav .active-tab { color: #e94560; background: #1a1a3a; }
+        .profile-view {
+            width: 100%;
+            background: #12122a;
+            border-radius: 20px;
+            padding: 20px 16px;
+            margin-top: 8px;
+            display: none;
+            flex-direction: column;
+            gap: 14px;
+            border: 1px solid #2a2a5a;
+        }
+        .profile-view.active { display: flex; }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .profile-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #2a2a5a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            border: 2px solid #e94560;
+            overflow: hidden;
+        }
+        .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-info { display: flex; flex-direction: column; gap: 2px; }
+        .profile-info .name { font-size: 18px; font-weight: 600; }
+        .profile-info .id { font-size: 13px; color: #888; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 12px;
+            background: #0a0a1a;
+            padding: 12px;
+            border-radius: 16px;
+        }
+        .stats-item { display: flex; justify-content: space-between; border-bottom: 1px solid #1a1a3a; padding: 4px 0; }
+        .stats-item:last-child { border-bottom: none; }
+        .admin-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #0a0a1a;
+            padding: 8px 12px;
+            border-radius: 40px;
+        }
+        .admin-toggle label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .admin-toggle input[type="checkbox"] { width: 18px; height: 18px; accent-color: #e94560; }
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f0f2a;
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 60px;
+            border: 1px solid #e94560;
+            font-size: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 99;
+            white-space: nowrap;
+        }
+        .toast.show { opacity: 1; }
+        .zoom-indicator {
+            position: absolute;
+            bottom: 8px;
+            right: 12px;
+            background: #00000077;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #ccc;
+            backdrop-filter: blur(2px);
+        }
+        @media (max-width: 480px) {
+            .header button { font-size: 12px; padding: 4px 10px; }
+            .controls button { font-size: 12px; padding: 4px 12px; }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="header">
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button id="gridToggle">📐 Сетка</button>
+            <button id="zoomIn">➕</button>
+            <button id="zoomOut">➖</button>
+        </div>
+        <div style="display: flex; gap: 6px;">
+            <button id="resetView">🔍 Сброс</button>
+        </div>
+    </div>
+    <button class="support-btn" id="supportBtn">❤️ Поддержите нас подпиской ❤️</button>
+    <div class="canvas-wrapper" id="canvasWrapper">
+        <canvas id="pixelCanvas" width="1000" height="1000"></canvas>
+        <div class="zoom-indicator" id="zoomLevel">100%</div>
+    </div>
+    <div class="controls">
+        <div class="color-picker-wrap">
+            <input type="color" id="colorPicker" value="#e94560">
+        </div>
+        <button id="placePixelBtn">🎨 Поставить</button>
+        <button id="magnifierBtn">🔍 Лупа</button>
+    </div>
+    <div id="profileView" class="profile-view">
+        <div class="profile-header">
+            <div class="profile-avatar" id="avatarContainer">👤</div>
+            <div class="profile-info">
+                <div class="name" id="profileName">Игрок</div>
+                <div class="id" id="profileId">ID: ---</div>
+            </div>
+        </div>
+        <div class="admin-toggle">
+            <span>👑 Админ-режим</span>
+            <label><input type="checkbox" id="adminModeCheck"> Вкл</label>
+        </div>
+        <div class="stats-grid" id="statsGrid">
+            <div class="stats-item"><span>Первый пиксель</span><span id="firstPixel">—</span></div>
+            <div class="stats-item"><span>Последний пиксель</span><span id="lastPixel">—</span></div>
+            <div class="stats-item"><span>Всего пикселей</span><span id="totalPixels">0</span></div>
+            <div class="stats-item"><span>Блокировка</span><span id="blockStatus">❌</span></div>
+        </div>
+        <button id="blockUserBtn" style="background:#2a1a2a; border:1px solid #e94560; padding:6px; border-radius:40px; margin-top:4px;">⛔ Блокировать пользователя (ввод ID)</button>
+    </div>
+    <div id="toast" class="toast"></div>
+</div>
+<div class="bottom-nav">
+    <button id="tabBattle" class="active-tab">⚔️ Битва</button>
+    <button id="tabProfile">👤 Профиль</button>
+</div>
+<script>
+    (function(){
+        // ---------- CONFIG ----------
+        const CANVAS_SIZE = 1000;
+        const OWNER_ID = 1393765131; // Ваш ID
+
+        // ---------- STATE ----------
+        let pixels = new Array(CANVAS_SIZE * CANVAS_SIZE).fill(null);
+        let zoom = 1;
+        let offsetX = 0, offsetY = 0;
+        let showGrid = false;
+        let isMagnifier = false;
+        let adminMode = false;
+        let currentUser = null;
+        let blockedUsers = new Set();
+
+        let userStats = {
+            firstPixel: null,
+            lastPixel: null,
+            total: 0
+        };
+
+        // DOM
+        const canvas = document.getElementById('pixelCanvas');
+        const ctx = canvas.getContext('2d');
+        const wrapper = document.getElementById('canvasWrapper');
+        const colorPicker = document.getElementById('colorPicker');
+        const gridToggle = document.getElementById('gridToggle');
+        const zoomIn = document.getElementById('zoomIn');
+        const zoomOut = document.getElementById('zoomOut');
+        const resetView = document.getElementById('resetView');
+        const placeBtn = document.getElementById('placePixelBtn');
+        const magnifierBtn = document.getElementById('magnifierBtn');
+        const toastEl = document.getElementById('toast');
+        const profileView = document.getElementById('profileView');
+        const tabBattle = document.getElementById('tabBattle');
+        const tabProfile = document.getElementById('tabProfile');
+        const adminModeCheck = document.getElementById('adminModeCheck');
+        const blockUserBtn = document.getElementById('blockUserBtn');
+        const supportBtn = document.getElementById('supportBtn');
+
+        // профиль
+        const profileName = document.getElementById('profileName');
+        const profileId = document.getElementById('profileId');
+        const avatarContainer = document.getElementById('avatarContainer');
+        const firstPixelEl = document.getElementById('firstPixel');
+        const lastPixelEl = document.getElementById('lastPixel');
+        const totalPixelsEl = document.getElementById('totalPixels');
+        const blockStatus = document.getElementById('blockStatus');
+
+        // ---------- TELEGRAM INIT ----------
+        function initTelegramUser() {
+            if (window.Telegram && Telegram.WebApp) {
+                const user = Telegram.WebApp.initDataUnsafe?.user;
+                if (user) {
+                    currentUser = {
+                        id: user.id,
+                        first_name: user.first_name || '',
+                        last_name: user.last_name || '',
+                        username: user.username || '',
+                        photo_url: user.photo_url || ''
+                    };
+                    updateProfileUI();
+                    return;
+                }
+            }
+            currentUser = {
+                id: Math.floor(Math.random() * 1000000) + 1000000,
+                first_name: 'Player',
+                last_name: '',
+                username: '',
+                photo_url: ''
+            };
+            updateProfileUI();
+        }
+
+        function updateProfileUI() {
+            if (!currentUser) return;
+            const name = currentUser.first_name + (currentUser.last_name ? ' ' + currentUser.last_name : '');
+            profileName.textContent = name || 'Игрок';
+            profileId.textContent = 'ID: ' + currentUser.id;
+            if (currentUser.photo_url) {
+                avatarContainer.innerHTML = `<img src="${currentUser.photo_url}" alt="avatar" />`;
+            } else {
+                avatarContainer.textContent = '👤';
+            }
+            const stats = getUserStats(currentUser.id);
+            firstPixelEl.textContent = stats.firstPixel ? new Date(stats.firstPixel).toLocaleDateString() : '—';
+            lastPixelEl.textContent = stats.lastPixel ? new Date(stats.lastPixel).toLocaleDateString() : '—';
+            totalPixelsEl.textContent = stats.total || 0;
+            const isBlocked = blockedUsers.has(currentUser.id);
+            blockStatus.textContent = isBlocked ? '⛔ Заблокирован' : '✅ Активен';
+            blockStatus.style.color = isBlocked ? '#e94560' : '#4caf50';
+        }
+
+        // ---------- PIXEL DATA ----------
+        function getPixelIndex(x, y) { return y * CANVAS_SIZE + x; }
+
+        function setPixel(x, y, color, userId) {
+            if (x < 0 || x >= CANVAS_SIZE || y < 0 || y >= CANVAS_SIZE) return false;
+            const idx = getPixelIndex(x, y);
+            if (blockedUsers.has(userId)) return false;
+            pixels[idx] = {
+                color: color,
+                userId: userId,
+                timestamp: Date.now(),
+                userName: currentUser ? currentUser.first_name : 'anon'
+            };
+            const stats = getUserStats(userId);
+            if (!stats.firstPixel) stats.firstPixel = Date.now();
+            stats.lastPixel = Date.now();
+            stats.total = (stats.total || 0) + 1;
+            saveStats();
+            return true;
+        }
+
+        function getPixel(x, y) {
+            if (x < 0 || x >= CANVAS_SIZE || y < 0 || y >= CANVAS_SIZE) return null;
+            return pixels[getPixelIndex(x, y)];
+        }
+
+        // ---------- STATS ----------
+        function loadStats() {
+            try {
+                const raw = localStorage.getItem('pixelBattleStats');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    window._stats = parsed;
+                } else {
+                    window._stats = {};
+                }
+            } catch(e) { window._stats = {}; }
+        }
+
+        function saveStats() {
+            localStorage.setItem('pixelBattleStats', JSON.stringify(window._stats || {}));
+        }
+
+        function getUserStats(userId) {
+            if (!window._stats) loadStats();
+            if (!window._stats[userId]) {
+                window._stats[userId] = { firstPixel: null, lastPixel: null, total: 0 };
+            }
+            return window._stats[userId];
+        }
+
+        // ---------- BLOCKED USERS ----------
+        function loadBlocked() {
+            try {
+                const raw = localStorage.getItem('pixelBattleBlocked');
+                if (raw) {
+                    const arr = JSON.parse(raw);
+                    blockedUsers = new Set(arr);
+                }
+            } catch(e) { blockedUsers = new Set(); }
+        }
+
+        function saveBlocked() {
+            localStorage.setItem('pixelBattleBlocked', JSON.stringify([...blockedUsers]));
+        }
+
+        // ---------- RENDER ----------
+        function render() {
+            const rect = wrapper.getBoundingClientRect();
+            const displaySize = Math.min(rect.width, rect.height);
+            const effectiveSize = displaySize * zoom;
+            const offsetXpx = (displaySize - effectiveSize) / 2 + offsetX * displaySize * 0.1;
+            const offsetYpx = (displaySize - effectiveSize) / 2 + offsetY * displaySize * 0.1;
+
+            canvas.style.width = displaySize + 'px';
+            canvas.style.height = displaySize + 'px';
+            canvas.width = CANVAS_SIZE;
+            canvas.height = CANVAS_SIZE;
+
+            ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+            const pixelSize = 1;
+            for (let y = 0; y < CANVAS_SIZE; y++) {
+                for (let x = 0; x < CANVAS_SIZE; x++) {
+                    const data = pixels[getPixelIndex(x, y)];
+                    if (data) {
+                        ctx.fillStyle = data.color;
+                        ctx.fillRect(x, y, 1, 1);
+                    }
+                }
+            }
+
+            if (showGrid) {
+                ctx.strokeStyle = 'rgba(200,200,200,0.3)';
+                ctx.lineWidth = 0.3;
+                for (let i = 0; i <= CANVAS_SIZE; i+=10) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, 0);
+                    ctx.lineTo(i, CANVAS_SIZE);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(0, i);
+                    ctx.lineTo(CANVAS_SIZE, i);
+                    ctx.stroke();
+                }
+            }
+
+            document.getElementById('zoomLevel').textContent = Math.round(zoom * 100) + '%';
+        }
+
+        // ---------- STATS ----------
+        function loadStats() {
+            try {
+                const raw = localStorage.getItem('pixelBattleStats');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    window._stats = parsed;
+                } else {
+                    window._stats = {};
+                }
+            } catch(e) { window._stats = {}; }
+        }
+
+        function saveStats() {
+            localStorage.setItem('pixelBattleStats', JSON.stringify(window._stats || {}));
+        }
+
+        function getUserStats(userId) {
+            if (!window._stats) loadStats();
+            if (!window._stats[userId]) {
+                window._stats[userId] = { firstPixel: null, lastPixel: null, total: 0 };
+            }
+            return window._stats[userId];
+        }
+
+        // ---------- BLOCKED USERS ----------
+        function loadBlocked() {
+            try {
+                const raw = localStorage.getItem('pixelBattleBlocked');
+                if (raw) {
+                    const arr = JSON.parse(raw);
+                    blockedUsers = new Set(arr);
+                }
+            } catch(e) { blockedUsers = new Set(); }
+        }
+
+        function saveBlocked() {
+            localStorage.setItem('pixelBattleBlocked', JSON.stringify([...blockedUsers]));
+        }
+
+        // ---------- RENDER ----------
+        function render() {
+            const rect = wrapper.getBoundingClientRect();
+            const displaySize = Math.min(rect.width, rect.height);
+            const effectiveSize = displaySize * zoom;
+            const offsetXpx = (displaySize - effectiveSize) / 2 + offsetX * displaySize * 0.1;
+            const offsetYpx = (displaySize - effectiveSize) / 2 + offsetY * displaySize * 0.1;
+
+            canvas.style.width = displaySize + 'px';
+            canvas.style.height = displaySize + 'px';
+            canvas.width = CANVAS_SIZE;
+            canvas.height = CANVAS_SIZE;
+
+            ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+            const pixelSize = 1;
+            for (let y = 0; y < CANVAS_SIZE; y++) {
+                for (let x = 0; x < CANVAS_SIZE; x++) {
+                    const data = pixels[getPixelIndex(x, y)];
+                    if (data) {
+                        ctx.fillStyle = data.color;
+                        ctx.fillRect(x, y, 1, 1);
+                    }
+                }
+            }
+
+            if (showGrid) {
+                ctx.strokeStyle = 'rgba(200,200,200,0.3)';
+                ctx.lineWidth = 0.3;
+                for (let i = 0; i <= CANVAS_SIZE; i+=10) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, 0);
+                    ctx.lineTo(i, CANVAS_SIZE);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(0, i);
+                    ctx.lineTo(CANVAS_SIZE, i);
+                    ctx.stroke();
+                }
+            }
+
+            document.getElementById('zoomLevel').textContent = Math.round(zoom * 100) + '%';
+        }
+
+        // ---------- PLACE PIXEL ----------
+        let lastPlaceTime = 0;
+        const COOLDOWN = 2000;
+
+        function handlePlacePixel(clientX, clientY) {
+            if (!currentUser) return;
+            if (blockedUsers.has(currentUser.id) && currentUser.id !== OWNER_ID) {
+                showToast('⛔ Вы заблокированы и не можете ставить пиксели');
+                return;
+            }
+
+            const rect = wrapper.getBoundingClientRect();
+            const displaySize = Math.min(rect.width, rect.height);
+            const effectiveSize = displaySize * zoom;
+            const offsetXpx = (displaySize - effectiveSize) / 2 + offsetX * displaySize * 0.1;
+            const offsetYpx = (displaySize - effectiveSize) / 2 + offsetY * displaySize * 0.1;
+
+            const x = (clientX - rect.left - offsetXpx) / effectiveSize * CANVAS_SIZE;
+            const y = (clientY - rect.top - offsetYpx) / effectiveSize * CANVAS_SIZE;
+            const xi = Math.floor(x);
+            const yi = Math.floor(y);
+            if (xi < 0 || xi >= CANVAS_SIZE || yi < 0 || yi >= CANVAS_SIZE) return;
+
+            if (adminMode && currentUser.id === OWNER_ID) {
+                const color = colorPicker.value;
+                setPixel(xi, yi, color, currentUser.id);
+                render();
+                showToast(`👑 Админ закрасил (${xi},${yi})`);
+                return;
+            }
+
+            const now = Date.now();
+            if (now - lastPlaceTime < COOLDOWN) {
+                showToast(`⏳ Подождите ${Math.ceil((COOLDOWN - (now - lastPlaceTime))/1000)}с`);
+                return;
+            }
+
+            const existing = getPixel(xi, yi);
+            if (existing) {
+                showToast(`❌ Пиксель уже занят (${existing.userName || 'anon'})`);
+                return;
+            }
+
+            const color = colorPicker.value;
+            if (setPixel(xi, yi, color, currentUser.id)) {
+                lastPlaceTime = now;
+                render();
+                showToast(`✅ Пиксель поставлен! (${xi},${yi})`);
+                updateProfileUI();
+            } else {
+                showToast('❌ Ошибка');
+            }
+        }
+
+        // ---------- MAGNIFIER ----------
+        function handleMagnifier(clientX, clientY) {
+            const rect = wrapper.getBoundingClientRect();
+            const displaySize = Math.min(rect.width, rect.height);
+            const effectiveSize = displaySize * zoom;
+            const offsetXpx = (displaySize - effectiveSize) / 2 + offsetX * displaySize * 0.1;
+            const offsetYpx = (displaySize - effectiveSize) / 2 + offsetY * displaySize * 0.1;
+
+            const x = (clientX - rect.left - offsetXpx) / effectiveSize * CANVAS_SIZE;
+            const y = (clientY - rect.top - offsetYpx) / effectiveSize * CANVAS_SIZE;
+            const xi = Math.floor(x);
+            const yi = Math.floor(y);
+            if (xi < 0 || xi >= CANVAS_SIZE || yi < 0 || yi >= CANVAS_SIZE) return;
+
+            const data = getPixel(xi, yi);
+            if (data) {
+                const userName = data.userName || 'anon';
+                const timeAgo = Math.floor((Date.now() - data.timestamp) / (1000 * 60 * 60 * 24));
+                const days = timeAgo > 0 ? `${timeAgo} дн. назад` : 'сегодня';
+                showToast(`🎨 Закрашен ${userName} (ID:${data.userId}) ${days}`);
+            } else {
+                showToast(`⬜ Пусто (${xi},${yi})`);
+            }
+        }
+
+        // ---------- TOAST ----------
+        let toastTimeout = null;
+        function showToast(msg) {
+            toastEl.textContent = msg;
+            toastEl.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toastEl.classList.remove('show'), 2500);
+        }
+
+        // ---------- ZOOM / PAN ----------
+        function setZoom(newZoom) {
+            zoom = Math.min(20, Math.max(0.5, newZoom));
+            render();
+        }
+
+        function resetView() {
+            zoom = 1;
+            offsetX = 0;
+            offsetY = 0;
+            render();
+        }
+
+        // ---------- EVENTS ----------
+        function setupEvents() {
+            canvas.addEventListener('click', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.clientX;
+                const clientY = e.clientY;
+                if (isMagnifier) {
+                    handleMagnifier(clientX, clientY);
+                } else {
+                    handlePlacePixel(clientX, clientY);
+                }
+            });
+
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                if (!touch) return;
+                const clientX = touch.clientX;
+                const clientY = touch.clientY;
+                if (isMagnifier) {
+                    handleMagnifier(clientX, clientY);
+                } else {
+                    handlePlacePixel(clientX, clientY);
+                }
+            }, { passive: false });
+
+            zoomIn.addEventListener('click', () => setZoom(zoom * 1.3));
+            zoomOut.addEventListener('click', () => setZoom(zoom / 1.3));
+            resetView.addEventListener('click', resetView);
+
+            gridToggle.addEventListener('click', () => {
+                showGrid = !showGrid;
+                gridToggle.style.border = showGrid ? '1px solid #e94560' : 'none';
+                render();
+            });
+
+            magnifierBtn.addEventListener('click', () => {
+                isMagnifier = !isMagnifier;
+                magnifierBtn.style.border = isMagnifier ? '2px solid #e94560' : 'none';
+                showToast(isMagnifier ? '🔍 Лупа включена' : '🔍 Лупа выключена');
+            });
+
+            placeBtn.addEventListener('click', () => {
+                showToast('👆 Кликните на холст');
+            });
+
+            // Кнопка поддержки
+            supportBtn.addEventListener('click', () => {
+                window.open('https://t.me/empty0_0channel/3', '_blank');
+            });
+
+            tabBattle.addEventListener('click', () => {
+                tabBattle.classList.add('active-tab');
+                tabProfile.classList.remove('active-tab');
+                profileView.classList.remove('active');
+            });
+            tabProfile.addEventListener('click', () => {
+                tabProfile.classList.add('active-tab');
+                tabBattle.classList.remove('active-tab');
+                profileView.classList.add('active');
+                updateProfileUI();
+            });
+
+            adminModeCheck.addEventListener('change', (e) => {
+                if (currentUser && currentUser.id === OWNER_ID) {
+                    adminMode = e.target.checked;
+                    showToast(adminMode ? '👑 Админ-режим включён' : '👑 Админ-режим выключен');
+                } else {
+                    e.target.checked = false;
+                    showToast('❌ Только для владельца');
+                }
+            });
+
+            blockUserBtn.addEventListener('click', () => {
+                if (currentUser.id !== OWNER_ID) {
+                    showToast('❌ Только для владельца');
+                    return;
+                }
+                const id = prompt('Введите Telegram ID пользователя для блокировки:');
+                if (id) {
+                    const num = Number(id);
+                    if (!isNaN(num) && num > 0) {
+                        blockedUsers.add(num);
+                        saveBlocked();
+                        showToast(`⛔ Пользователь ${num} заблокирован`);
+                        updateProfileUI();
+                    } else {
+                        showToast('❌ Некорректный ID');
+                    }
+                }
+            });
+
+            loadStats();
+            loadBlocked();
+            initTelegramUser();
+
+            try {
+                const saved = localStorage.getItem('pixelBattlePixels');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    for (let i = 0; i < parsed.length && i < pixels.length; i++) {
+                        if (parsed[i]) {
+                            pixels[i] = parsed[i];
+                        }
+                    }
+                }
+            } catch(e) {}
+
+            setInterval(() => {
+                try {
+                    localStorage.setItem('pixelBattlePixels', JSON.stringify(pixels));
+                } catch(e) {}
+            }, 10000);
+
+            render();
+            updateProfileUI();
+        }
+
+        document.addEventListener('DOMContentLoaded', setupEvents);
+    })();
+</script>
+</body>
+</html>
