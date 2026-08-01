@@ -30,8 +30,6 @@
             align-items: center;
             gap: 8px;
         }
-        
-        /* Header */
         .header {
             width: 100%;
             display: flex;
@@ -62,8 +60,6 @@
             background: rgba(233, 69, 96, 0.2);
             color: #e94560;
         }
-
-        /* Support Button */
         .support-btn {
             background: linear-gradient(135deg, #e94560, #c23152);
             color: white;
@@ -79,8 +75,6 @@
             box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
         }
         .support-btn:active { transform: scale(0.97); }
-
-        /* Canvas */
         .canvas-wrapper {
             position: relative;
             width: 100%;
@@ -111,8 +105,6 @@
             backdrop-filter: blur(4px);
             pointer-events: none;
         }
-
-        /* Controls */
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -138,8 +130,6 @@
             border-color: #e94560;
             color: #e94560;
         }
-
-        /* Color Palette */
         .palette {
             display: flex;
             gap: 6px;
@@ -163,8 +153,6 @@
             box-shadow: 0 0 16px rgba(233,69,96,0.5);
             transform: scale(1.1);
         }
-
-        /* Toggle Switch */
         .toggle-wrapper {
             display: flex;
             align-items: center;
@@ -203,8 +191,6 @@
         .toggle.active .thumb {
             left: 20px;
         }
-
-        /* Profile Panel */
         .profile-panel {
             width: 100%;
             background: rgba(255,255,255,0.04);
@@ -264,7 +250,6 @@
         }
         .profile-panel .stats .stat span:first-child { color: #888; }
         .profile-panel .stats .stat span:last-child { color: #eee; font-weight: 500; }
-
         .profile-panel .admin-section {
             display: flex;
             flex-direction: column;
@@ -308,8 +293,6 @@
             border-color: #4caf50;
             color: #4caf50;
         }
-
-        /* Toast */
         .toast {
             position: fixed;
             bottom: 90px;
@@ -329,8 +312,6 @@
             white-space: nowrap;
         }
         .toast.show { opacity: 1; }
-
-        /* Bottom Nav */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -358,7 +339,6 @@
             color: #e94560;
             background: rgba(233,69,96,0.1);
         }
-
         @media (max-width: 400px) {
             .palette .color-btn { width: 28px; height: 28px; }
             .controls .btn { font-size: 12px; padding: 4px 12px; }
@@ -367,22 +347,15 @@
 </head>
 <body>
 <div id="app">
-    <!-- Header -->
     <div class="header">
         <h1>Pixel Battle</h1>
         <button class="profile-btn" id="profileToggle">👤 Profile</button>
     </div>
-
-    <!-- Support -->
     <button class="support-btn" id="supportBtn">❤️ Поддержите нас подпиской</button>
-
-    <!-- Canvas -->
     <div class="canvas-wrapper" id="canvasWrapper">
         <canvas id="pixelCanvas" width="1000" height="1000"></canvas>
         <div class="zoom-indicator" id="zoomLevel">100%</div>
     </div>
-
-    <!-- Controls -->
     <div class="controls">
         <button class="btn" id="gridToggle">📐 Сетка</button>
         <button class="btn" id="zoomIn">➕</button>
@@ -390,17 +363,9 @@
         <button class="btn" id="resetView">⟲ Сброс</button>
         <button class="btn" id="magnifierBtn">🔍 Лупа</button>
     </div>
-
-    <!-- Color Palette -->
-    <div class="palette" id="palette">
-        <!-- 10 colors will be injected here -->
-    </div>
-
-    <!-- Toast -->
+    <div class="palette" id="palette"></div>
     <div id="toast" class="toast"></div>
 </div>
-
-<!-- Profile Panel -->
 <div class="profile-panel" id="profilePanel">
     <div class="user-info">
         <div class="avatar" id="avatarContainer">👤</div>
@@ -431,25 +396,15 @@
         </div>
     </div>
 </div>
-
-<!-- Bottom Nav -->
 <div class="bottom-nav">
     <button class="active" id="tabBattle">⚔️ Битва</button>
     <button id="tabProfile">👤 Profile</button>
 </div>
 <script>
     (function() {
-        // ============ CONFIG ============
         const CANVAS_SIZE = 1000;
         const OWNER_ID = 1393765131;
-
-        // 10 базовых цветов
-        const COLORS = [
-            '#e94560', '#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff',
-            '#845ec2', '#ff6f91', '#00c9a7', '#ff9671', '#0081cf'
-        ];
-
-        // ============ STATE ============
+        const COLORS = ['#e94560','#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#845ec2','#ff6f91','#00c9a7','#ff9671','#0081cf'];
         let pixels = new Array(CANVAS_SIZE * CANVAS_SIZE).fill(null);
         let zoom = 1;
         let showGrid = false;
@@ -458,8 +413,6 @@
         let selectedColor = null;
         let currentUser = null;
         let blockedUsers = new Set();
-
-        // ============ DOM ============
         const canvas = document.getElementById('pixelCanvas');
         const ctx = canvas.getContext('2d');
         const wrapper = document.getElementById('canvasWrapper');
@@ -469,19 +422,16 @@
         const profileToggle = document.getElementById('profileToggle');
         const tabBattle = document.getElementById('tabBattle');
         const tabProfile = document.getElementById('tabProfile');
-
         const gridToggle = document.getElementById('gridToggle');
         const zoomIn = document.getElementById('zoomIn');
         const zoomOut = document.getElementById('zoomOut');
         const resetView = document.getElementById('resetView');
         const magnifierBtn = document.getElementById('magnifierBtn');
         const supportBtn = document.getElementById('supportBtn');
-
         const adminToggle = document.getElementById('adminToggle');
         const blockInput = document.getElementById('blockInput');
         const blockBtn = document.getElementById('blockBtn');
         const unblockBtn = document.getElementById('unblockBtn');
-
         const profileName = document.getElementById('profileName');
         const profileId = document.getElementById('profileId');
         const avatarContainer = document.getElementById('avatarContainer');
@@ -490,38 +440,26 @@
         const totalPixelsEl = document.getElementById('totalPixels');
         const blockStatus = document.getElementById('blockStatus');
 
-        // ============ TELEGRAM ============
         function initTelegramUser() {
             if (window.Telegram && Telegram.WebApp) {
                 const user = Telegram.WebApp.initDataUnsafe?.user;
                 if (user) {
-                    currentUser = {
-                        id: user.id,
-                        first_name: user.first_name || '',
-                        last_name: user.last_name || '',
-                        photo_url: user.photo_url || ''
-                    };
+                    currentUser = { id: user.id, first_name: user.first_name || '', last_name: user.last_name || '', photo_url: user.photo_url || '' };
                     updateProfileUI();
                     return;
                 }
             }
-            currentUser = {
-                id: Math.floor(Math.random() * 1000000) + 1000000,
-                first_name: 'Player',
-                last_name: '',
-                photo_url: ''
-            };
+            currentUser = { id: Math.floor(Math.random() * 1000000) + 1000000, first_name: 'Player', last_name: '', photo_url: '' };
             updateProfileUI();
         }
 
-        // ============ PROFILE UI ============
         function updateProfileUI() {
             if (!currentUser) return;
             const name = currentUser.first_name + (currentUser.last_name ? ' ' + currentUser.last_name : '');
             profileName.textContent = name || 'Игрок';
             profileId.textContent = 'ID: ' + currentUser.id;
             if (currentUser.photo_url) {
-                avatarContainer.innerHTML = `<img src="${currentUser.photo_url}" alt="avatar" />`;
+                avatarContainer.innerHTML = '<img src="' + currentUser.photo_url + '" alt="avatar" />';
             } else {
                 avatarContainer.textContent = '👤';
             }
@@ -534,19 +472,13 @@
             blockStatus.style.color = isBlocked ? '#e94560' : '#4caf50';
         }
 
-        // ============ PIXEL DATA ============
         function getPixelIndex(x, y) { return y * CANVAS_SIZE + x; }
 
         function setPixel(x, y, color, userId) {
             if (x < 0 || x >= CANVAS_SIZE || y < 0 || y >= CANVAS_SIZE) return false;
             const idx = getPixelIndex(x, y);
             if (blockedUsers.has(userId)) return false;
-            pixels[idx] = {
-                color: color,
-                userId: userId,
-                timestamp: Date.now(),
-                userName: currentUser ? currentUser.first_name : 'anon'
-            };
+            pixels[idx] = { color: color, userId: userId, timestamp: Date.now(), userName: currentUser ? currentUser.first_name : 'anon' };
             const stats = getUserStats(userId);
             if (!stats.firstPixel) stats.firstPixel = Date.now();
             stats.lastPixel = Date.now();
@@ -560,15 +492,10 @@
             return pixels[getPixelIndex(x, y)];
         }
 
-        // ============ STORAGE ============
         function loadStats() {
             try {
                 const raw = localStorage.getItem('pixelBattleStats');
-                if (raw) {
-                    window._stats = JSON.parse(raw);
-                } else {
-                    window._stats = {};
-                }
+                if (raw) { window._stats = JSON.parse(raw); } else { window._stats = {}; }
             } catch(e) { window._stats = {}; }
         }
 
@@ -587,9 +514,7 @@
         function loadBlocked() {
             try {
                 const raw = localStorage.getItem('pixelBattleBlocked');
-                if (raw) {
-                    blockedUsers = new Set(JSON.parse(raw));
-                }
+                if (raw) { blockedUsers = new Set(JSON.parse(raw)); }
             } catch(e) { blockedUsers = new Set(); }
         }
 
@@ -597,26 +522,20 @@
             localStorage.setItem('pixelBattleBlocked', JSON.stringify([...blockedUsers]));
         }
 
-        // ============ RENDER ============
         function render() {
             const rect = wrapper.getBoundingClientRect();
             const displaySize = Math.min(rect.width, rect.height);
-
             canvas.style.width = displaySize + 'px';
             canvas.style.height = displaySize + 'px';
             canvas.width = CANVAS_SIZE;
             canvas.height = CANVAS_SIZE;
-
             ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-
-            // Рендерим пиксели (учитываем зум)
             const startX = Math.floor((1 - 1/zoom) / 2 * CANVAS_SIZE);
             const startY = Math.floor((1 - 1/zoom) / 2 * CANVAS_SIZE);
             const endX = Math.floor((1 + 1/zoom) / 2 * CANVAS_SIZE);
             const endY = Math.floor((1 + 1/zoom) / 2 * CANVAS_SIZE);
-
             for (let y = startY; y < endY && y < CANVAS_SIZE; y++) {
                 for (let x = startX; x < endX && x < CANVAS_SIZE; x++) {
                     const data = pixels[getPixelIndex(x, y)];
@@ -626,8 +545,6 @@
                     }
                 }
             }
-
-            // Сетка
             if (showGrid) {
                 ctx.strokeStyle = 'rgba(0,0,0,0.08)';
                 ctx.lineWidth = 0.3;
@@ -643,11 +560,9 @@
                     ctx.stroke();
                 }
             }
-
             document.getElementById('zoomLevel').textContent = Math.round(zoom * 100) + '%';
         }
 
-        // ============ COORDINATES ============
         function getCanvasCoords(clientX, clientY) {
             const rect = canvas.getBoundingClientRect();
             const x = (clientX - rect.left) / rect.width * CANVAS_SIZE;
@@ -655,88 +570,57 @@
             return { x: Math.floor(x), y: Math.floor(y) };
         }
 
-        // ============ HANDLERS ============
         let lastPlaceTime = 0;
         const COOLDOWN = 2000;
 
         function handleCanvasClick(clientX, clientY) {
-            if (!currentUser) {
-                showToast('⚠️ Пользователь не определён');
-                return;
-            }
-
+            if (!currentUser) { showToast('⚠️ Пользователь не определён'); return; }
             const { x, y } = getCanvasCoords(clientX, clientY);
-            if (x < 0 || x >= CANVAS_SIZE || y < 0 || y >= CANVAS_SIZE) {
-                showToast('❌ Вне холста');
-                return;
-            }
-
-            // Режим лупы
+            if (x < 0 || x >= CANVAS_SIZE || y < 0 || y >= CANVAS_SIZE) { showToast('❌ Вне холста'); return; }
             if (isMagnifier) {
                 const data = getPixel(x, y);
                 if (data) {
                     const userName = data.userName || 'anon';
                     const timeAgo = Math.floor((Date.now() - data.timestamp) / (1000 * 60 * 60 * 24));
-                    const days = timeAgo > 0 ? `${timeAgo} дн. назад` : 'сегодня';
-                    showToast(`🎨 ${userName} (ID:${data.userId}) ${days}`);
+                    const days = timeAgo > 0 ? timeAgo + ' дн. назад' : 'сегодня';
+                    showToast('🎨 ' + userName + ' (ID:' + data.userId + ') ' + days);
                 } else {
-                    showToast(`⬜ Пусто (${x},${y})`);
+                    showToast('⬜ Пусто (' + x + ',' + y + ')');
                 }
                 return;
             }
-
-            // Проверка выбора цвета
-            if (!selectedColor) {
-                showToast('⚠️ Сначала выберите цвет!');
-                return;
-            }
-
-            // Проверка блокировки
-            if (blockedUsers.has(currentUser.id) && currentUser.id !== OWNER_ID) {
-                showToast('⛔ Вы заблокированы');
-                return;
-            }
-
-            // Админ-режим
+            if (!selectedColor) { showToast('⚠️ Сначала выберите цвет!'); return; }
+            if (blockedUsers.has(currentUser.id) && currentUser.id !== OWNER_ID) { showToast('⛔ Вы заблокированы'); return; }
             if (adminMode && currentUser.id === OWNER_ID) {
                 setPixel(x, y, selectedColor, currentUser.id);
                 render();
-                showToast(`👑 Админ закрасил (${x},${y})`);
+                showToast('👑 Админ закрасил (' + x + ',' + y + ')');
                 return;
             }
-
-            // Обычный режим с кулдауном
             const now = Date.now();
             if (now - lastPlaceTime < COOLDOWN) {
-                showToast(`⏳ Подождите ${Math.ceil((COOLDOWN - (now - lastPlaceTime))/1000)}с`);
+                showToast('⏳ Подождите ' + Math.ceil((COOLDOWN - (now - lastPlaceTime))/1000) + 'с');
                 return;
             }
-
             const existing = getPixel(x, y);
-            if (existing) {
-                showToast(`❌ Занято (${existing.userName || 'anon'})`);
-                return;
-            }
-
+            if (existing) { showToast('❌ Занято (' + (existing.userName || 'anon') + ')'); return; }
             if (setPixel(x, y, selectedColor, currentUser.id)) {
                 lastPlaceTime = now;
                 render();
-                showToast(`✅ Пиксель поставлен! (${x},${y})`);
+                showToast('✅ Пиксель поставлен! (' + x + ',' + y + ')');
                 updateProfileUI();
             }
         }
 
-        // ============ TOAST ============
         let toastTimeout = null;
 
         function showToast(msg) {
             toastEl.textContent = msg;
             toastEl.classList.add('show');
             clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => toastEl.classList.remove('show'), 2500);
+            toastTimeout = setTimeout(function() { toastEl.classList.remove('show'); }, 2500);
         }
 
-        // ============ ZOOM ============
         function setZoom(newZoom) {
             zoom = Math.min(20, Math.max(0.5, newZoom));
             render();
@@ -747,71 +631,56 @@
             render();
         }
 
-        // ============ PALETTE ============
         function renderPalette() {
             palette.innerHTML = '';
-            COLORS.forEach(color => {
-                const btn = document.createElement('div');
+            COLORS.forEach(function(color) {
+                var btn = document.createElement('div');
                 btn.className = 'color-btn';
                 btn.style.background = color;
                 if (selectedColor === color) btn.classList.add('selected');
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', function() {
                     selectedColor = color;
-                    document.querySelectorAll('.color-btn').forEach(el => el.classList.remove('selected'));
+                    document.querySelectorAll('.color-btn').forEach(function(el) { el.classList.remove('selected'); });
                     btn.classList.add('selected');
-                    showToast(`🎨 Выбран цвет`);
+                    showToast('🎨 Выбран цвет');
                 });
                 palette.appendChild(btn);
             });
         }
 
-        // ============ TOGGLE ============
         function setupToggle(toggle, onToggle) {
-            toggle.addEventListener('click', () => {
-                const isActive = toggle.classList.toggle('active');
+            toggle.addEventListener('click', function() {
+                var isActive = toggle.classList.toggle('active');
                 onToggle(isActive);
             });
         }
 
-        // ============ EVENTS ============
         function setupEvents() {
-            // Canvas
-            canvas.addEventListener('click', (e) => {
+            canvas.addEventListener('click', function(e) {
                 handleCanvasClick(e.clientX, e.clientY);
             });
-
-            canvas.addEventListener('touchstart', (e) => {
+            canvas.addEventListener('touchstart', function(e) {
                 e.preventDefault();
-                const touch = e.touches[0];
+                var touch = e.touches[0];
                 if (touch) handleCanvasClick(touch.clientX, touch.clientY);
             }, { passive: false });
-
-            // Zoom
-            zoomIn.addEventListener('click', () => setZoom(zoom * 1.3));
-            zoomOut.addEventListener('click', () => setZoom(zoom / 1.3));
+            zoomIn.addEventListener('click', function() { setZoom(zoom * 1.3); });
+            zoomOut.addEventListener('click', function() { setZoom(zoom / 1.3); });
             resetView.addEventListener('click', resetView);
-
-            // Grid
-            gridToggle.addEventListener('click', () => {
+            gridToggle.addEventListener('click', function() {
                 showGrid = !showGrid;
                 gridToggle.classList.toggle('active');
                 render();
             });
-
-            // Magnifier
-            magnifierBtn.addEventListener('click', () => {
+            magnifierBtn.addEventListener('click', function() {
                 isMagnifier = !isMagnifier;
                 magnifierBtn.classList.toggle('active');
                 showToast(isMagnifier ? '🔍 Лупа включена' : '🔍 Лупа выключена');
             });
-
-            // Support
-            supportBtn.addEventListener('click', () => {
+            supportBtn.addEventListener('click', function() {
                 window.open('https://t.me/empty0_0channel/3', '_blank');
             });
-
-            // Profile toggle
-            profileToggle.addEventListener('click', () => {
+            profileToggle.addEventListener('click', function() {
                 profilePanel.classList.toggle('show');
                 profileToggle.classList.toggle('active');
                 tabBattle.classList.remove('active');
@@ -820,24 +689,20 @@
                     updateProfileUI();
                 }
             });
-
-            // Bottom nav
-            tabBattle.addEventListener('click', () => {
+            tabBattle.addEventListener('click', function() {
                 tabBattle.classList.add('active');
                 tabProfile.classList.remove('active');
                 profilePanel.classList.remove('show');
                 profileToggle.classList.remove('active');
             });
-            tabProfile.addEventListener('click', () => {
+            tabProfile.addEventListener('click', function() {
                 tabProfile.classList.add('active');
                 tabBattle.classList.remove('active');
                 profilePanel.classList.add('show');
                 profileToggle.classList.add('active');
                 updateProfileUI();
             });
-
-            // Admin toggle
-            setupToggle(adminToggle, (isActive) => {
+            setupToggle(adminToggle, function(isActive) {
                 if (currentUser && currentUser.id === OWNER_ID) {
                     adminMode = isActive;
                     showToast(isActive ? '👑 Админ-режим включён' : '👑 Админ-режим выключен');
@@ -846,65 +711,43 @@
                     showToast('❌ Только для владельца');
                 }
             });
-
-            // Block/Unblock
-            blockBtn.addEventListener('click', () => {
-                if (!currentUser || currentUser.id !== OWNER_ID) {
-                    showToast('❌ Только для владельца');
-                    return;
-                }
-                const id = parseInt(blockInput.value);
-                if (isNaN(id) || id <= 0) {
-                    showToast('❌ Введите корректный ID');
-                    return;
-                }
+            blockBtn.addEventListener('click', function() {
+                if (!currentUser || currentUser.id !== OWNER_ID) { showToast('❌ Только для владельца'); return; }
+                var id = parseInt(blockInput.value);
+                if (isNaN(id) || id <= 0) { showToast('❌ Введите корректный ID'); return; }
                 blockedUsers.add(id);
                 saveBlocked();
-                showToast(`⛔ Пользователь ${id} заблокирован`);
+                showToast('⛔ Пользователь ' + id + ' заблокирован');
                 updateProfileUI();
                 blockInput.value = '';
             });
-
-            unblockBtn.addEventListener('click', () => {
-                if (!currentUser || currentUser.id !== OWNER_ID) {
-                    showToast('❌ Только для владельца');
-                    return;
-                }
-                const id = parseInt(blockInput.value);
-                if (isNaN(id) || id <= 0) {
-                    showToast('❌ Введите корректный ID');
-                    return;
-                }
+            unblockBtn.addEventListener('click', function() {
+                if (!currentUser || currentUser.id !== OWNER_ID) { showToast('❌ Только для владельца'); return; }
+                var id = parseInt(blockInput.value);
+                if (isNaN(id) || id <= 0) { showToast('❌ Введите корректный ID'); return; }
                 blockedUsers.delete(id);
                 saveBlocked();
-                showToast(`✅ Пользователь ${id} разблокирован`);
+                showToast('✅ Пользователь ' + id + ' разблокирован');
                 updateProfileUI();
                 blockInput.value = '';
             });
-
-            // Load data
             loadStats();
             loadBlocked();
             initTelegramUser();
-
-            // Load pixels
             try {
-                const saved = localStorage.getItem('pixelBattlePixels');
+                var saved = localStorage.getItem('pixelBattlePixels');
                 if (saved) {
-                    const parsed = JSON.parse(saved);
-                    for (let i = 0; i < parsed.length && i < pixels.length; i++) {
+                    var parsed = JSON.parse(saved);
+                    for (var i = 0; i < parsed.length && i < pixels.length; i++) {
                         if (parsed[i]) pixels[i] = parsed[i];
                     }
                 }
             } catch(e) {}
-
-            // Auto-save
-            setInterval(() => {
+            setInterval(function() {
                 try {
                     localStorage.setItem('pixelBattlePixels', JSON.stringify(pixels));
                 } catch(e) {}
             }, 10000);
-
             renderPalette();
             render();
             updateProfileUI();
