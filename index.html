@@ -5,756 +5,436 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pixel Battle</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a1a;
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            padding: 12px 12px 80px 12px;
-            touch-action: pan-x pan-y;
-        }
-        #app {
-            width: 100%;
-            max-width: 500px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-        .header {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4px 0;
-        }
-        .header h1 {
-            font-size: 22px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #e94560, #ff6b8a);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: 1px;
-        }
-        .header .profile-btn {
-            background: rgba(255,255,255,0.08);
-            border: none;
-            color: #aaa;
-            font-size: 14px;
-            padding: 6px 14px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: 0.3s;
-            font-weight: 500;
-        }
-        .header .profile-btn.active {
-            background: rgba(233, 69, 96, 0.2);
-            color: #e94560;
-        }
-        .support-btn {
-            background: linear-gradient(135deg, #e94560, #c23152);
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 30px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            text-align: center;
-            transition: 0.3s;
-            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
-        }
-        .support-btn:active { transform: scale(0.97); }
-        .canvas-wrapper {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 1/1;
-            background: #ffffff;
-            border-radius: 16px;
-            overflow: hidden;
-            border: 2px solid #2a2a4a;
-            touch-action: none;
-        }
-        #pixelCanvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-            image-rendering: pixelated;
-            touch-action: none;
-            cursor: crosshair;
-        }
-        .zoom-indicator {
-            position: absolute;
-            bottom: 10px;
-            right: 12px;
-            background: rgba(0,0,0,0.6);
-            padding: 4px 12px;
-            border-radius: 16px;
-            font-size: 12px;
-            color: #ccc;
-            backdrop-filter: blur(4px);
-            pointer-events: none;
-        }
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-            width: 100%;
-            padding: 4px 0;
-        }
-        .controls .btn {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid #2a2a4a;
-            color: #ccc;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: 0.3s;
-            font-weight: 500;
-        }
-        .controls .btn:active { transform: scale(0.95); }
-        .controls .btn.active {
-            background: rgba(233, 69, 96, 0.2);
-            border-color: #e94560;
-            color: #e94560;
-        }
-        .palette {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            justify-content: center;
-            padding: 4px 0;
-            width: 100%;
-        }
-        .palette .color-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: 0.3s;
-            flex-shrink: 0;
-        }
-        .palette .color-btn:active { transform: scale(0.9); }
-        .palette .color-btn.selected {
-            border-color: #ffffff;
-            box-shadow: 0 0 16px rgba(233,69,96,0.5);
-            transform: scale(1.1);
-        }
-        .toggle-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 4px 0;
-        }
-        .toggle-wrapper label {
-            font-size: 13px;
-            color: #aaa;
-            font-weight: 500;
-        }
-        .toggle {
-            position: relative;
-            width: 44px;
-            height: 26px;
-            background: #2a2a4a;
-            border-radius: 13px;
-            cursor: pointer;
-            transition: 0.3s;
-            flex-shrink: 0;
-        }
-        .toggle.active {
-            background: #e94560;
-        }
-        .toggle .thumb {
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 22px;
-            height: 22px;
-            background: white;
-            border-radius: 50%;
-            transition: 0.3s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-        .toggle.active .thumb {
-            left: 20px;
-        }
-        .profile-panel {
-            width: 100%;
-            background: rgba(255,255,255,0.04);
-            border-radius: 16px;
-            padding: 16px;
-            border: 1px solid #2a2a4a;
-            display: none;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .profile-panel.show { display: flex; }
-        .profile-panel .user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .profile-panel .avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: #2a2a4a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            border: 2px solid #e94560;
-            overflow: hidden;
-        }
-        .profile-panel .avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .profile-panel .user-details {
-            flex: 1;
-        }
-        .profile-panel .user-details .name {
-            font-size: 16px;
-            font-weight: 600;
-        }
-        .profile-panel .user-details .id {
-            font-size: 12px;
-            color: #888;
-        }
-        .profile-panel .stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px 12px;
-            background: rgba(0,0,0,0.3);
-            padding: 10px;
-            border-radius: 12px;
-        }
-        .profile-panel .stats .stat {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body { background: #0a0a1a; display: flex; justify-content: center; padding: 12px 12px 80px 12px; font-family: -apple-system, sans-serif; min-height: 100vh; }
+        #app { max-width: 500px; width: 100%; }
+        h1 { color: #e94560; text-align: center; font-size: 24px; margin-bottom: 10px; }
+        .support { background: linear-gradient(135deg, #e94560, #c23152); color: white; border: none; padding: 10px; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; }
+        .canvas-wrap { width: 100%; aspect-ratio: 1/1; background: white; border-radius: 16px; overflow: hidden; border: 2px solid #2a2a4a; position: relative; }
+        #canvas { width: 100%; height: 100%; image-rendering: pixelated; cursor: crosshair; display: block; }
+        .zoom-label { position: absolute; bottom: 8px; right: 12px; background: rgba(0,0,0,0.6); color: #ccc; padding: 2px 12px; border-radius: 12px; font-size: 12px; }
+        .controls { display: flex; gap: 6px; justify-content: center; margin: 8px 0; flex-wrap: wrap; }
+        .controls button { background: rgba(255,255,255,0.06); border: 1px solid #2a2a4a; color: #ccc; padding: 5px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; }
+        .controls button.active { background: rgba(233,69,96,0.2); border-color: #e94560; color: #e94560; }
+        .palette { display: flex; gap: 6px; justify-content: center; margin: 8px 0; flex-wrap: wrap; }
+        .color-btn { width: 32px; height: 32px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+        .color-btn.selected { border-color: white; box-shadow: 0 0 16px rgba(233,69,96,0.5); transform: scale(1.1); }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(10,10,26,0.95); backdrop-filter: blur(12px); display: flex; justify-content: space-around; padding: 10px 0 14px 0; border-top: 1px solid #2a2a4a; }
+        .bottom-nav button { background: transparent; border: none; color: #666; font-size: 13px; font-weight: 500; padding: 4px 20px; border-radius: 20px; cursor: pointer; }
+        .bottom-nav button.active { color: #e94560; background: rgba(233,69,96,0.1); }
+        .profile-panel { background: rgba(255,255,255,0.04); border-radius: 16px; padding: 16px; border: 1px solid #2a2a4a; display: none; margin-top: 10px; }
+        .profile-panel.show { display: block; }
+        .profile-panel .info { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .profile-panel .avatar { width: 48px; height: 48px; border-radius: 50%; background: #2a2a4a; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid #e94560; overflow: hidden; }
+        .profile-panel .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-panel .name { font-size: 16px; font-weight: 600; }
+        .profile-panel .id { font-size: 12px; color: #888; }
+        .profile-panel .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; margin-bottom: 12px; }
+        .profile-panel .stats .stat { display: flex; justify-content: space-between; font-size: 13px; }
         .profile-panel .stats .stat span:first-child { color: #888; }
         .profile-panel .stats .stat span:last-child { color: #eee; font-weight: 500; }
-        .profile-panel .admin-section {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            border-top: 1px solid #2a2a4a;
-            padding-top: 12px;
-        }
-        .profile-panel .admin-section .row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .profile-panel .admin-section input[type="number"] {
-            flex: 1;
-            min-width: 100px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid #2a2a4a;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-            outline: none;
-        }
-        .profile-panel .admin-section input[type="number"]:focus {
-            border-color: #e94560;
-        }
-        .profile-panel .admin-section .btn-sm {
-            background: rgba(233,69,96,0.15);
-            border: 1px solid #e94560;
-            color: #e94560;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .profile-panel .admin-section .btn-sm:active { transform: scale(0.95); }
-        .profile-panel .admin-section .btn-sm.green {
-            background: rgba(76, 175, 80, 0.15);
-            border-color: #4caf50;
-            color: #4caf50;
-        }
-        .toast {
-            position: fixed;
-            bottom: 90px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(10,10,26,0.95);
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 30px;
-            border: 1px solid #e94560;
-            font-size: 14px;
-            pointer-events: none;
-            opacity: 0;
-            transition: 0.3s;
-            z-index: 99;
-            backdrop-filter: blur(8px);
-            white-space: nowrap;
-        }
+        .toggle-wrap { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+        .toggle-wrap label { font-size: 13px; color: #aaa; }
+        .toggle { width: 44px; height: 26px; background: #2a2a4a; border-radius: 13px; cursor: pointer; position: relative; transition: 0.3s; flex-shrink: 0; }
+        .toggle.active { background: #e94560; }
+        .toggle .thumb { position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .toggle.active .thumb { left: 20px; }
+        .block-row { display: flex; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
+        .block-row input { flex: 1; min-width: 80px; background: rgba(255,255,255,0.06); border: 1px solid #2a2a4a; color: white; padding: 6px 12px; border-radius: 20px; font-size: 14px; outline: none; }
+        .block-row input:focus { border-color: #e94560; }
+        .block-row button { background: rgba(233,69,96,0.15); border: 1px solid #e94560; color: #e94560; padding: 6px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; }
+        .block-row button.green { background: rgba(76,175,80,0.15); border-color: #4caf50; color: #4caf50; }
+        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(10,10,26,0.95); color: white; padding: 10px 20px; border-radius: 30px; border: 1px solid #e94560; font-size: 14px; opacity: 0; transition: 0.3s; z-index: 99; backdrop-filter: blur(8px); white-space: nowrap; pointer-events: none; }
         .toast.show { opacity: 1; }
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(10,10,26,0.95);
-            backdrop-filter: blur(12px);
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0 14px 0;
-            border-top: 1px solid #2a2a4a;
-            z-index: 10;
-        }
-        .bottom-nav button {
-            background: transparent;
-            border: none;
-            color: #666;
-            font-size: 13px;
-            font-weight: 500;
-            padding: 4px 16px;
-            border-radius: 20px;
-            transition: 0.3s;
-        }
-        .bottom-nav button.active {
-            color: #e94560;
-            background: rgba(233,69,96,0.1);
-        }
-        @media (max-width: 400px) {
-            .palette .color-btn { width: 28px; height: 28px; }
-            .controls .btn { font-size: 12px; padding: 4px 12px; }
-        }
+        @media (max-width: 400px) { .color-btn { width: 28px; height: 28px; } .controls button { font-size: 11px; padding: 4px 10px; } }
     </style>
 </head>
 <body>
 <div id="app">
-    <div class="header">
-        <h1>Pixel Battle</h1>
-        <button class="profile-btn" id="profileToggle">👤 Profile</button>
+        <h1>⚔️ Pixel Battle</h1>
+
+    <button class="support" id="supportBtn">❤️ Поддержите нас подпиской</button>
+
+    <div class="canvas-wrap" id="canvasWrap">
+        <canvas id="canvas" width="1000" height="1000"></canvas>
+        <div class="zoom-label" id="zoomLabel">100%</div>
     </div>
-    <button class="support-btn" id="supportBtn">❤️ Поддержите нас подпиской</button>
-    <div class="canvas-wrapper" id="canvasWrapper">
-        <canvas id="pixelCanvas" width="1000" height="1000"></canvas>
-        <div class="zoom-indicator" id="zoomLevel">100%</div>
-    </div>
+
     <div class="controls">
-        <button class="btn" id="gridToggle">📐 Сетка</button>
-        <button class="btn" id="zoomIn">➕</button>
-        <button class="btn" id="zoomOut">➖</button>
-        <button class="btn" id="resetView">⟲ Сброс</button>
-        <button class="btn" id="magnifierBtn">🔍 Лупа</button>
+        <button id="gridBtn">📐 Сетка</button>
+        <button id="zoomIn">➕</button>
+        <button id="zoomOut">➖</button>
+        <button id="resetBtn">⟲ Сброс</button>
+        <button id="magnifierBtn">🔍 Лупа</button>
     </div>
+
     <div class="palette" id="palette"></div>
-    <div id="toast" class="toast"></div>
-</div>
-<div class="profile-panel" id="profilePanel">
-    <div class="user-info">
-        <div class="avatar" id="avatarContainer">👤</div>
-        <div class="user-details">
-            <div class="name" id="profileName">Игрок</div>
-            <div class="id" id="profileId">ID: ---</div>
-        </div>
+
+    <div class="bottom-nav">
+        <button class="active" id="tabBattle">⚔️ Битва</button>
+        <button id="tabProfile">👤 Profile</button>
     </div>
-    <div class="stats" id="statsGrid">
-        <div class="stat"><span>Первый</span><span id="firstPixel">—</span></div>
-        <div class="stat"><span>Последний</span><span id="lastPixel">—</span></div>
-        <div class="stat"><span>Всего</span><span id="totalPixels">0</span></div>
-        <div class="stat"><span>Статус</span><span id="blockStatus">✅</span></div>
-    </div>
-    <div class="admin-section">
-        <div class="row">
-            <div class="toggle-wrapper">
-                <label>Режим Администратора</label>
-                <div class="toggle" id="adminToggle">
-                    <div class="thumb"></div>
-                </div>
+
+    <div class="profile-panel" id="profilePanel">
+        <div class="info">
+            <div class="avatar" id="avatar">👤</div>
+            <div>
+                <div class="name" id="userName">Игрок</div>
+                <div class="id" id="userId">ID: ---</div>
             </div>
         </div>
-        <div class="row">
+        <div class="stats">
+            <div class="stat"><span>Первый</span><span id="firstPixel">—</span></div>
+            <div class="stat"><span>Последний</span><span id="lastPixel">—</span></div>
+            <div class="stat"><span>Всего</span><span id="totalPixels">0</span></div>
+            <div class="stat"><span>Статус</span><span id="userStatus">✅</span></div>
+        </div>
+        <div class="toggle-wrap">
+            <label>Режим Администратора</label>
+            <div class="toggle" id="adminToggle"><div class="thumb"></div></div>
+        </div>
+        <div class="block-row">
             <input type="number" id="blockInput" placeholder="ID пользователя" min="1">
-            <button class="btn-sm" id="blockBtn">⛔ Блок</button>
-            <button class="btn-sm green" id="unblockBtn">✅ Разблок</button>
+            <button id="blockBtn">⛔ Блок</button>
+            <button class="green" id="unblockBtn">✅ Разблок</button>
         </div>
     </div>
-</div>
-<div class="bottom-nav">
-    <button class="active" id="tabBattle">⚔️ Битва</button>
-    <button id="tabProfile">👤 Profile</button>
+
+    <div id="toast" class="toast">👋 Кликни на холст!</div>
 </div>
 <script>
-    (function() {
-        const CANVAS_SIZE = 1000;
-        const OWNER_ID = 1393765131;
-        const COLORS = ['#e94560','#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#845ec2','#ff6f91','#00c9a7','#ff9671','#0081cf'];
-        let pixels = new Array(CANVAS_SIZE * CANVAS_SIZE).fill(null);
-        let zoom = 1;
-        let showGrid = false;
-        let isMagnifier = false;
-        let adminMode = false;
-        let selectedColor = null;
-        let currentUser = null;
-        let blockedUsers = new Set();
-        const canvas = document.getElementById('pixelCanvas');
-        const ctx = canvas.getContext('2d');
-        const wrapper = document.getElementById('canvasWrapper');
-        const palette = document.getElementById('palette');
-        const toastEl = document.getElementById('toast');
-        const profilePanel = document.getElementById('profilePanel');
-        const profileToggle = document.getElementById('profileToggle');
-        const tabBattle = document.getElementById('tabBattle');
-        const tabProfile = document.getElementById('tabProfile');
-        const gridToggle = document.getElementById('gridToggle');
-        const zoomIn = document.getElementById('zoomIn');
-        const zoomOut = document.getElementById('zoomOut');
-        const resetView = document.getElementById('resetView');
-        const magnifierBtn = document.getElementById('magnifierBtn');
-        const supportBtn = document.getElementById('supportBtn');
-        const adminToggle = document.getElementById('adminToggle');
-        const blockInput = document.getElementById('blockInput');
-        const blockBtn = document.getElementById('blockBtn');
-        const unblockBtn = document.getElementById('unblockBtn');
-        const profileName = document.getElementById('profileName');
-        const profileId = document.getElementById('profileId');
-        const avatarContainer = document.getElementById('avatarContainer');
-        const firstPixelEl = document.getElementById('firstPixel');
-        const lastPixelEl = document.getElementById('lastPixel');
-        const totalPixelsEl = document.getElementById('totalPixels');
-        const blockStatus = document.getElementById('blockStatus');
+(function() {
+    const SIZE = 1000;
+    const OWNER_ID = 1393765131;
+    const COLORS = ['#e94560','#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#845ec2','#ff6f91','#00c9a7','#ff9671','#0081cf'];
 
-        function initTelegramUser() {
-            if (window.Telegram && Telegram.WebApp) {
-                const user = Telegram.WebApp.initDataUnsafe?.user;
-                if (user) {
-                    currentUser = { id: user.id, first_name: user.first_name || '', last_name: user.last_name || '', photo_url: user.photo_url || '' };
-                    updateProfileUI();
-                    return;
+    let pixels = new Array(SIZE * SIZE).fill(null);
+    let selectedColor = '#e94560';
+    let zoom = 1;
+    let showGrid = false;
+    let isMagnifier = false;
+    let adminMode = false;
+    let currentUser = null;
+    let blockedUsers = new Set();
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const palette = document.getElementById('palette');
+    const toast = document.getElementById('toast');
+    const zoomLabel = document.getElementById('zoomLabel');
+    const profilePanel = document.getElementById('profilePanel');
+
+    function initUser() {
+        if (window.Telegram && Telegram.WebApp) {
+            let u = Telegram.WebApp.initDataUnsafe?.user;
+            if (u) {
+                currentUser = { id: u.id, name: u.first_name || 'Игрок', photo: u.photo_url || '' };
+                updateProfile();
+                return;
+            }
+        }
+        currentUser = { id: Math.floor(Math.random()*1000000)+1000000, name: 'Player', photo: '' };
+        updateProfile();
+    }
+
+    function updateProfile() {
+        if (!currentUser) return;
+        document.getElementById('userName').textContent = currentUser.name;
+        document.getElementById('userId').textContent = 'ID: ' + currentUser.id;
+        if (currentUser.photo) {
+            document.getElementById('avatar').innerHTML = '<img src="'+currentUser.photo+'">';
+        } else {
+            document.getElementById('avatar').textContent = '👤';
+        }
+        let stats = getStats(currentUser.id);
+        document.getElementById('firstPixel').textContent = stats.first ? new Date(stats.first).toLocaleDateString() : '—';
+        document.getElementById('lastPixel').textContent = stats.last ? new Date(stats.last).toLocaleDateString() : '—';
+        document.getElementById('totalPixels').textContent = stats.total || 0;
+        let blocked = blockedUsers.has(currentUser.id);
+        let status = document.getElementById('userStatus');
+        status.textContent = blocked ? '⛔ Заблокирован' : '✅ Активен';
+        status.style.color = blocked ? '#e94560' : '#4caf50';
+    }
+
+    function getStats(id) {
+        let data = JSON.parse(localStorage.getItem('pixelStats') || '{}');
+        if (!data[id]) data[id] = { first: null, last: null, total: 0 };
+        return data[id];
+    }
+
+    function saveStats(id, stats) {
+        let data = JSON.parse(localStorage.getItem('pixelStats') || '{}');
+        data[id] = stats;
+        localStorage.setItem('pixelStats', JSON.stringify(data));
+    }
+
+    function loadBlocked() {
+        try {
+            let data = JSON.parse(localStorage.getItem('blockedUsers') || '[]');
+            blockedUsers = new Set(data);
+        } catch(e) { blockedUsers = new Set(); }
+    }
+
+    function saveBlocked() {
+        localStorage.setItem('blockedUsers', JSON.stringify([...blockedUsers]));
+    }
+
+    function loadPixels() {
+        try {
+            let data = JSON.parse(localStorage.getItem('pixels') || '[]');
+            for (let i = 0; i < data.length && i < pixels.length; i++) {
+                if (data[i]) pixels[i] = data[i];
+            }
+        } catch(e) {}
+    }
+
+    function savePixels() {
+        localStorage.setItem('pixels', JSON.stringify(pixels));
+    }
+
+    function render() {
+        let rect = canvas.getBoundingClientRect();
+        let displaySize = Math.min(rect.width, rect.height);
+        canvas.style.width = displaySize + 'px';
+        canvas.style.height = displaySize + 'px';
+        canvas.width = SIZE;
+        canvas.height = SIZE;
+
+        ctx.clearRect(0, 0, SIZE, SIZE);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, SIZE, SIZE);
+
+        let pixelSize = Math.max(1, Math.floor(1 / zoom));
+        let startX = Math.floor((1 - 1/zoom) / 2 * SIZE);
+        let startY = Math.floor((1 - 1/zoom) / 2 * SIZE);
+        let endX = Math.floor((1 + 1/zoom) / 2 * SIZE);
+        let endY = Math.floor((1 + 1/zoom) / 2 * SIZE);
+
+        for (let y = startY; y < endY && y < SIZE; y += pixelSize) {
+            for (let x = startX; x < endX && x < SIZE; x += pixelSize) {
+                let idx = y * SIZE + x;
+                if (pixels[idx]) {
+                    ctx.fillStyle = pixels[idx].color;
+                    ctx.fillRect(x, y, pixelSize, pixelSize);
                 }
             }
-            currentUser = { id: Math.floor(Math.random() * 1000000) + 1000000, first_name: 'Player', last_name: '', photo_url: '' };
-            updateProfileUI();
         }
 
-        function updateProfileUI() {
-            if (!currentUser) return;
-            const name = currentUser.first_name + (currentUser.last_name ? ' ' + currentUser.last_name : '');
-            profileName.textContent = name || 'Игрок';
-            profileId.textContent = 'ID: ' + currentUser.id;
-            if (currentUser.photo_url) {
-                avatarContainer.innerHTML = '<img src="' + currentUser.photo_url + '" alt="avatar" />';
+        if (showGrid) {
+            ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+            ctx.lineWidth = 0.3;
+            let gridStep = Math.max(1, Math.floor(50 / zoom));
+            for (let i = startX; i <= endX; i += gridStep) {
+                ctx.beginPath(); ctx.moveTo(i, startY); ctx.lineTo(i, endY); ctx.stroke();
+            }
+            for (let i = startY; i <= endY; i += gridStep) {
+                ctx.beginPath(); ctx.moveTo(startX, i); ctx.lineTo(endX, i); ctx.stroke();
+            }
+        }
+
+        zoomLabel.textContent = Math.round(zoom * 100) + '%';
+    }
+
+    function getCoords(clientX, clientY) {
+        let rect = canvas.getBoundingClientRect();
+        let x = Math.floor((clientX - rect.left) / rect.width * SIZE);
+        let y = Math.floor((clientY - rect.top) / rect.height * SIZE);
+        return { x, y };
+    }
+
+    let toastTimer;
+
+    function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    let lastClick = 0;
+    const COOLDOWN = 2000;
+
+    function handleClick(clientX, clientY) {
+        if (!currentUser) { showToast('⚠️ Ошибка пользователя'); return; }
+
+        let { x, y } = getCoords(clientX, clientY);
+        if (x < 0 || x >= SIZE || y < 0 || y >= SIZE) { showToast('❌ Вне холста'); return; }
+
+        let idx = y * SIZE + x;
+
+        if (isMagnifier) {
+            if (pixels[idx]) {
+                let time = Math.floor((Date.now() - pixels[idx].time) / (1000*60*60*24));
+                let days = time > 0 ? time + ' дн.' : 'сегодня';
+                showToast('🎨 ' + (pixels[idx].name || 'anon') + ' (ID:' + pixels[idx].id + ') ' + days);
             } else {
-                avatarContainer.textContent = '👤';
+                showToast('⬜ Пусто (' + x + ',' + y + ')');
             }
-            const stats = getUserStats(currentUser.id);
-            firstPixelEl.textContent = stats.firstPixel ? new Date(stats.firstPixel).toLocaleDateString() : '—';
-            lastPixelEl.textContent = stats.lastPixel ? new Date(stats.lastPixel).toLocaleDateString() : '—';
-            totalPixelsEl.textContent = stats.total || 0;
-            const isBlocked = blockedUsers.has(currentUser.id);
-            blockStatus.textContent = isBlocked ? '⛔ Заблокирован' : '✅ Активен';
-            blockStatus.style.color = isBlocked ? '#e94560' : '#4caf50';
+            return;
         }
 
-        function getPixelIndex(x, y) { return y * CANVAS_SIZE + x; }
+        if (!selectedColor) { showToast('⚠️ Выбери цвет!'); return; }
 
-        function setPixel(x, y, color, userId) {
-            if (x < 0 || x >= CANVAS_SIZE || y < 0 || y >= CANVAS_SIZE) return false;
-            const idx = getPixelIndex(x, y);
-            if (blockedUsers.has(userId)) return false;
-            pixels[idx] = { color: color, userId: userId, timestamp: Date.now(), userName: currentUser ? currentUser.first_name : 'anon' };
-            const stats = getUserStats(userId);
-            if (!stats.firstPixel) stats.firstPixel = Date.now();
-            stats.lastPixel = Date.now();
-            stats.total = (stats.total || 0) + 1;
-            saveStats();
-            return true;
+        if (blockedUsers.has(currentUser.id) && currentUser.id !== OWNER_ID) {
+            showToast('⛔ Ты заблокирован!');
+            return;
         }
 
-        function getPixel(x, y) {
-            if (x < 0 || x >= CANVAS_SIZE || y < 0 || y >= CANVAS_SIZE) return null;
-            return pixels[getPixelIndex(x, y)];
-        }
-
-        function loadStats() {
-            try {
-                const raw = localStorage.getItem('pixelBattleStats');
-                if (raw) { window._stats = JSON.parse(raw); } else { window._stats = {}; }
-            } catch(e) { window._stats = {}; }
-        }
-
-        function saveStats() {
-            localStorage.setItem('pixelBattleStats', JSON.stringify(window._stats || {}));
-        }
-
-        function getUserStats(userId) {
-            if (!window._stats) loadStats();
-            if (!window._stats[userId]) {
-                window._stats[userId] = { firstPixel: null, lastPixel: null, total: 0 };
-            }
-            return window._stats[userId];
-        }
-
-        function loadBlocked() {
-            try {
-                const raw = localStorage.getItem('pixelBattleBlocked');
-                if (raw) { blockedUsers = new Set(JSON.parse(raw)); }
-            } catch(e) { blockedUsers = new Set(); }
-        }
-
-        function saveBlocked() {
-            localStorage.setItem('pixelBattleBlocked', JSON.stringify([...blockedUsers]));
-        }
-
-        function render() {
-            const rect = wrapper.getBoundingClientRect();
-            const displaySize = Math.min(rect.width, rect.height);
-            canvas.style.width = displaySize + 'px';
-            canvas.style.height = displaySize + 'px';
-            canvas.width = CANVAS_SIZE;
-            canvas.height = CANVAS_SIZE;
-            ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-            const startX = Math.floor((1 - 1/zoom) / 2 * CANVAS_SIZE);
-            const startY = Math.floor((1 - 1/zoom) / 2 * CANVAS_SIZE);
-            const endX = Math.floor((1 + 1/zoom) / 2 * CANVAS_SIZE);
-            const endY = Math.floor((1 + 1/zoom) / 2 * CANVAS_SIZE);
-            for (let y = startY; y < endY && y < CANVAS_SIZE; y++) {
-                for (let x = startX; x < endX && x < CANVAS_SIZE; x++) {
-                    const data = pixels[getPixelIndex(x, y)];
-                    if (data) {
-                        ctx.fillStyle = data.color;
-                        ctx.fillRect(x, y, 1, 1);
-                    }
-                }
-            }
-            if (showGrid) {
-                ctx.strokeStyle = 'rgba(0,0,0,0.08)';
-                ctx.lineWidth = 0.3;
-                const step = Math.max(1, Math.floor(10 / zoom));
-                for (let i = 0; i <= CANVAS_SIZE; i += step) {
-                    ctx.beginPath();
-                    ctx.moveTo(i, 0);
-                    ctx.lineTo(i, CANVAS_SIZE);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(0, i);
-                    ctx.lineTo(CANVAS_SIZE, i);
-                    ctx.stroke();
-                }
-            }
-            document.getElementById('zoomLevel').textContent = Math.round(zoom * 100) + '%';
-        }
-
-        function getCanvasCoords(clientX, clientY) {
-            const rect = canvas.getBoundingClientRect();
-            const x = (clientX - rect.left) / rect.width * CANVAS_SIZE;
-            const y = (clientY - rect.top) / rect.height * CANVAS_SIZE;
-            return { x: Math.floor(x), y: Math.floor(y) };
-        }
-
-        let lastPlaceTime = 0;
-        const COOLDOWN = 2000;
-
-        function handleCanvasClick(clientX, clientY) {
-            if (!currentUser) { showToast('⚠️ Пользователь не определён'); return; }
-            const { x, y } = getCanvasCoords(clientX, clientY);
-            if (x < 0 || x >= CANVAS_SIZE || y < 0 || y >= CANVAS_SIZE) { showToast('❌ Вне холста'); return; }
-            if (isMagnifier) {
-                const data = getPixel(x, y);
-                if (data) {
-                    const userName = data.userName || 'anon';
-                    const timeAgo = Math.floor((Date.now() - data.timestamp) / (1000 * 60 * 60 * 24));
-                    const days = timeAgo > 0 ? timeAgo + ' дн. назад' : 'сегодня';
-                    showToast('🎨 ' + userName + ' (ID:' + data.userId + ') ' + days);
-                } else {
-                    showToast('⬜ Пусто (' + x + ',' + y + ')');
-                }
-                return;
-            }
-            if (!selectedColor) { showToast('⚠️ Сначала выберите цвет!'); return; }
-            if (blockedUsers.has(currentUser.id) && currentUser.id !== OWNER_ID) { showToast('⛔ Вы заблокированы'); return; }
-            if (adminMode && currentUser.id === OWNER_ID) {
-                setPixel(x, y, selectedColor, currentUser.id);
-                render();
-                showToast('👑 Админ закрасил (' + x + ',' + y + ')');
-                return;
-            }
-            const now = Date.now();
-            if (now - lastPlaceTime < COOLDOWN) {
-                showToast('⏳ Подождите ' + Math.ceil((COOLDOWN - (now - lastPlaceTime))/1000) + 'с');
-                return;
-            }
-            const existing = getPixel(x, y);
-            if (existing) { showToast('❌ Занято (' + (existing.userName || 'anon') + ')'); return; }
-            if (setPixel(x, y, selectedColor, currentUser.id)) {
-                lastPlaceTime = now;
-                render();
-                showToast('✅ Пиксель поставлен! (' + x + ',' + y + ')');
-                updateProfileUI();
-            }
-        }
-
-        let toastTimeout = null;
-
-        function showToast(msg) {
-            toastEl.textContent = msg;
-            toastEl.classList.add('show');
-            clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(function() { toastEl.classList.remove('show'); }, 2500);
-        }
-
-        function setZoom(newZoom) {
-            zoom = Math.min(20, Math.max(0.5, newZoom));
+        if (adminMode && currentUser.id === OWNER_ID) {
+            pixels[idx] = { color: selectedColor, id: currentUser.id, name: currentUser.name, time: Date.now() };
             render();
+            showToast('👑 Админ (' + x + ',' + y + ')');
+            savePixels();
+            return;
         }
 
-        function resetView() {
+        let now = Date.now();
+        if (now - lastClick < COOLDOWN) {
+            showToast('⏳ Подожди ' + Math.ceil((COOLDOWN - (now - lastClick))/1000) + 'с');
+            return;
+        }
+
+        if (pixels[idx]) {
+            showToast('❌ Занято (' + (pixels[idx].name || 'anon') + ')');
+            return;
+        }
+
+        pixels[idx] = { color: selectedColor, id: currentUser.id, name: currentUser.name, time: Date.now() };
+        lastClick = now;
+        render();
+
+        let stats = getStats(currentUser.id);
+        if (!stats.first) stats.first = Date.now();
+        stats.last = Date.now();
+        stats.total = (stats.total || 0) + 1;
+        saveStats(currentUser.id, stats);
+
+        showToast('✅ Пиксель! (' + x + ',' + y + ')');
+        updateProfile();
+        savePixels();
+    }
+
+    function renderPalette() {
+        palette.innerHTML = '';
+        COLORS.forEach(c => {
+            let btn = document.createElement('div');
+            btn.className = 'color-btn';
+            btn.style.background = c;
+            if (c === selectedColor) btn.classList.add('selected');
+            btn.addEventListener('click', () => {
+                selectedColor = c;
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                showToast('🎨 Цвет выбран');
+            });
+            palette.appendChild(btn);
+        });
+    }
+
+    function setupToggle(el, callback) {
+        el.addEventListener('click', () => {
+            let active = el.classList.toggle('active');
+            callback(active);
+        });
+    }
+
+    function setup() {
+        canvas.addEventListener('click', (e) => handleClick(e.clientX, e.clientY));
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            let touch = e.touches[0];
+            if (touch) handleClick(touch.clientX, touch.clientY);
+        }, { passive: false });
+
+        document.getElementById('gridBtn').addEventListener('click', () => {
+            showGrid = !showGrid;
+            document.getElementById('gridBtn').classList.toggle('active');
+            render();
+        });
+
+        document.getElementById('zoomIn').addEventListener('click', () => {
+            zoom = Math.min(20, zoom * 1.3);
+            render();
+        });
+
+        document.getElementById('zoomOut').addEventListener('click', () => {
+            zoom = Math.max(0.5, zoom / 1.3);
+            render();
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
             zoom = 1;
             render();
-        }
+        });
 
-        function renderPalette() {
-            palette.innerHTML = '';
-            COLORS.forEach(function(color) {
-                var btn = document.createElement('div');
-                btn.className = 'color-btn';
-                btn.style.background = color;
-                if (selectedColor === color) btn.classList.add('selected');
-                btn.addEventListener('click', function() {
-                    selectedColor = color;
-                    document.querySelectorAll('.color-btn').forEach(function(el) { el.classList.remove('selected'); });
-                    btn.classList.add('selected');
-                    showToast('🎨 Выбран цвет');
-                });
-                palette.appendChild(btn);
-            });
-        }
+        document.getElementById('magnifierBtn').addEventListener('click', () => {
+            isMagnifier = !isMagnifier;
+            document.getElementById('magnifierBtn').classList.toggle('active');
+            showToast(isMagnifier ? '🔍 Лупа включена' : '🔍 Лупа выключена');
+        });
 
-        function setupToggle(toggle, onToggle) {
-            toggle.addEventListener('click', function() {
-                var isActive = toggle.classList.toggle('active');
-                onToggle(isActive);
-            });
-        }
+        document.getElementById('supportBtn').addEventListener('click', () => {
+            window.open('https://t.me/empty0_0channel/3', '_blank');
+        });
 
-        function setupEvents() {
-            canvas.addEventListener('click', function(e) {
-                handleCanvasClick(e.clientX, e.clientY);
-            });
-            canvas.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                var touch = e.touches[0];
-                if (touch) handleCanvasClick(touch.clientX, touch.clientY);
-            }, { passive: false });
-            zoomIn.addEventListener('click', function() { setZoom(zoom * 1.3); });
-            zoomOut.addEventListener('click', function() { setZoom(zoom / 1.3); });
-            resetView.addEventListener('click', resetView);
-            gridToggle.addEventListener('click', function() {
-                showGrid = !showGrid;
-                gridToggle.classList.toggle('active');
-                render();
-            });
-            magnifierBtn.addEventListener('click', function() {
-                isMagnifier = !isMagnifier;
-                magnifierBtn.classList.toggle('active');
-                showToast(isMagnifier ? '🔍 Лупа включена' : '🔍 Лупа выключена');
-            });
-            supportBtn.addEventListener('click', function() {
-                window.open('https://t.me/empty0_0channel/3', '_blank');
-            });
-            profileToggle.addEventListener('click', function() {
-                profilePanel.classList.toggle('show');
-                profileToggle.classList.toggle('active');
-                tabBattle.classList.remove('active');
-                tabProfile.classList.toggle('active');
-                if (profilePanel.classList.contains('show')) {
-                    updateProfileUI();
-                }
-            });
-            tabBattle.addEventListener('click', function() {
-                tabBattle.classList.add('active');
-                tabProfile.classList.remove('active');
-                profilePanel.classList.remove('show');
-                profileToggle.classList.remove('active');
-            });
-            tabProfile.addEventListener('click', function() {
-                tabProfile.classList.add('active');
-                tabBattle.classList.remove('active');
-                profilePanel.classList.add('show');
-                profileToggle.classList.add('active');
-                updateProfileUI();
-            });
-            setupToggle(adminToggle, function(isActive) {
-                if (currentUser && currentUser.id === OWNER_ID) {
-                    adminMode = isActive;
-                    showToast(isActive ? '👑 Админ-режим включён' : '👑 Админ-режим выключен');
-                } else {
-                    adminToggle.classList.remove('active');
-                    showToast('❌ Только для владельца');
-                }
-            });
-            blockBtn.addEventListener('click', function() {
-                if (!currentUser || currentUser.id !== OWNER_ID) { showToast('❌ Только для владельца'); return; }
-                var id = parseInt(blockInput.value);
-                if (isNaN(id) || id <= 0) { showToast('❌ Введите корректный ID'); return; }
-                blockedUsers.add(id);
-                saveBlocked();
-                showToast('⛔ Пользователь ' + id + ' заблокирован');
-                updateProfileUI();
-                blockInput.value = '';
-            });
-            unblockBtn.addEventListener('click', function() {
-                if (!currentUser || currentUser.id !== OWNER_ID) { showToast('❌ Только для владельца'); return; }
-                var id = parseInt(blockInput.value);
-                if (isNaN(id) || id <= 0) { showToast('❌ Введите корректный ID'); return; }
-                blockedUsers.delete(id);
-                saveBlocked();
-                showToast('✅ Пользователь ' + id + ' разблокирован');
-                updateProfileUI();
-                blockInput.value = '';
-            });
-            loadStats();
-            loadBlocked();
-            initTelegramUser();
-            try {
-                var saved = localStorage.getItem('pixelBattlePixels');
-                if (saved) {
-                    var parsed = JSON.parse(saved);
-                    for (var i = 0; i < parsed.length && i < pixels.length; i++) {
-                        if (parsed[i]) pixels[i] = parsed[i];
-                    }
-                }
-            } catch(e) {}
-            setInterval(function() {
-                try {
-                    localStorage.setItem('pixelBattlePixels', JSON.stringify(pixels));
-                } catch(e) {}
-            }, 10000);
-            renderPalette();
-            render();
-            updateProfileUI();
-        }
+        document.getElementById('tabBattle').addEventListener('click', () => {
+            document.getElementById('tabBattle').classList.add('active');
+            document.getElementById('tabProfile').classList.remove('active');
+            profilePanel.classList.remove('show');
+        });
 
-        document.addEventListener('DOMContentLoaded', setupEvents);
-    })();
+        document.getElementById('tabProfile').addEventListener('click', () => {
+            document.getElementById('tabProfile').classList.add('active');
+            document.getElementById('tabBattle').classList.remove('active');
+            profilePanel.classList.add('show');
+            updateProfile();
+        });
+
+        setupToggle(document.getElementById('adminToggle'), (active) => {
+            if (currentUser && currentUser.id === OWNER_ID) {
+                adminMode = active;
+                showToast(active ? '👑 Админ включён' : '👑 Админ выключен');
+            } else {
+                document.getElementById('adminToggle').classList.remove('active');
+                showToast('❌ Только для владельца');
+            }
+        });
+
+        document.getElementById('blockBtn').addEventListener('click', () => {
+            if (!currentUser || currentUser.id !== OWNER_ID) { showToast('❌ Только для владельца'); return; }
+            let id = parseInt(document.getElementById('blockInput').value);
+            if (!id || id <= 0) { showToast('❌ Введи ID'); return; }
+            blockedUsers.add(id);
+            saveBlocked();
+            showToast('⛔ Пользователь ' + id + ' заблокирован');
+            updateProfile();
+            document.getElementById('blockInput').value = '';
+        });
+
+        document.getElementById('unblockBtn').addEventListener('click', () => {
+            if (!currentUser || currentUser.id !== OWNER_ID) { showToast('❌ Только для владельца'); return; }
+            let id = parseInt(document.getElementById('blockInput').value);
+            if (!id || id <= 0) { showToast('❌ Введи ID'); return; }
+            blockedUsers.delete(id);
+            saveBlocked();
+            showToast('✅ Пользователь ' + id + ' разблокирован');
+            updateProfile();
+            document.getElementById('blockInput').value = '';
+        });
+
+        loadBlocked();
+        loadPixels();
+        initUser();
+        renderPalette();
+        render();
+
+        setInterval(savePixels, 5000);
+
+        showToast('👋 Кликни на холст!');
+    }
+
+    document.addEventListener('DOMContentLoaded', setup);
+})();
 </script>
 </body>
-</html>
+    </html>
