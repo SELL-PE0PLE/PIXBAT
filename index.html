@@ -11,7 +11,7 @@
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-shrink: 0; }
         h1 { color: #e94560; font-size: 22px; }
         .support { background: linear-gradient(135deg, #e94560, #c23152); color: white; border: none; padding: 8px; border-radius: 30px; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 8px; flex-shrink: 0; }
-        .canvas-wrap { width: 100%; flex: 1; background: white; border-radius: 16px; overflow: hidden; border: 2px solid #2a2a4a; position: relative; touch-action: pan-x pan-y; min-height: 0; }
+        .canvas-wrap { width: 100%; flex: 1; background: white; border-radius: 16px; overflow: hidden; border: 2px solid #2a2a4a; position: relative; touch-action: pan-x pan-y; min-height: 0; aspect-ratio: 1/1; }
         #canvas { width: 100%; height: 100%; image-rendering: pixelated; cursor: crosshair; display: block; touch-action: pan-x pan-y; }
         .zoom-label { position: absolute; bottom: 8px; right: 12px; background: rgba(0,0,0,0.6); color: #ccc; padding: 2px 10px; border-radius: 12px; font-size: 11px; pointer-events: none; }
         .controls { display: flex; gap: 6px; justify-content: center; margin: 6px 0; flex-shrink: 0; flex-wrap: wrap; }
@@ -26,7 +26,9 @@
         .bottom-nav button.active { color: #e94560; background: rgba(233,69,96,0.1); }
         .profile-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a1a; z-index: 20; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
         .profile-page.show { display: flex; }
-        .profile-page .close { align-self: flex-end; background: none; border: none; color: #e94560; font-size: 24px; cursor: pointer; padding: 8px; }
+        .profile-page .nav-buttons { display: flex; gap: 12px; margin-bottom: 16px; }
+        .profile-page .nav-buttons button { background: rgba(255,255,255,0.06); border: 1px solid #2a2a4a; color: #ccc; padding: 8px 20px; border-radius: 20px; font-size: 14px; cursor: pointer; }
+        .profile-page .nav-buttons button.active { background: rgba(233,69,96,0.2); border-color: #e94560; color: #e94560; }
         .profile-page .info { display: flex; align-items: center; gap: 14px; margin: 10px 0 16px 0; }
         .profile-page .avatar { width: 56px; height: 56px; border-radius: 50%; background: #2a2a4a; display: flex; align-items: center; justify-content: center; font-size: 28px; border: 2px solid #e94560; overflow: hidden; flex-shrink: 0; }
         .profile-page .avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -69,7 +71,10 @@
     <div id="toast" class="toast">👋 Кликни на холст!</div>
 </div>
 <div class="profile-page" id="profilePage">
-    <button class="close" id="closeProfile">✕</button>
+    <div class="nav-buttons">
+        <button id="profileBattleBtn">⚔️ Битва</button>
+        <button class="active" id="profileProfileBtn">👤 Profile</button>
+    </div>
     <div class="info">
         <div class="avatar" id="profileAvatar">👤</div>
         <div>
@@ -123,7 +128,7 @@
     let adminMode = false;
     let currentUser = null;
     let blockedUsers = new Set();
-    let canPlace = false; // можно ставить только при зуме > 3
+    let canPlace = false;
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -228,10 +233,11 @@
             }
         }
 
+        // Сетка по всему холсту с учётом зума
         if (showGrid) {
             ctx.strokeStyle = 'rgba(0,0,0,0.15)';
             ctx.lineWidth = 0.5;
-            let gridStep = Math.max(1, Math.floor(20 / zoom));
+            let gridStep = Math.max(1, Math.floor(10 / zoom));
             for (let i = startX; i <= endX; i += gridStep) {
                 ctx.beginPath(); ctx.moveTo(i, startY); ctx.lineTo(i, endY); ctx.stroke();
             }
@@ -240,9 +246,14 @@
             }
         }
 
-        zoomLabel.textContent = Math.round(zoom * 100) + '%';
+        // Показываем 10000% при максимуме
+        let displayZoom = Math.round(zoom * 100);
+        if (displayZoom >= 9999) {
+            zoomLabel.textContent = '10000%';
+        } else {
+            zoomLabel.textContent = displayZoom + '%';
+        }
         
-        // Разрешаем ставить только при зуме > 3 (300%)
         canPlace = zoom >= 3;
     }
 
@@ -268,7 +279,6 @@
     function handleClick(clientX, clientY) {
         if (!currentUser) { showToast('⚠️ Ошибка пользователя'); return; }
 
-        // Проверка: можно ставить только при зуме > 3
         if (!canPlace && selectedColor !== null) {
             showToast('🔍 Приблизьтесь (300%+) чтобы ставить');
             return;
@@ -279,7 +289,6 @@
 
         let idx = y * SIZE + x;
 
-        // Режим "Без цвета" - информация
         if (selectedColor === null) {
             if (pixels[idx]) {
                 let time = Math.floor((Date.now() - pixels[idx].time) / (1000*60*60*24));
@@ -360,7 +369,7 @@
     }
 
     function setup() {
-        // Зум двумя пальцами
+        // Зум двумя пальцами (макс 10000%)
         let lastTouchDist = 0;
         canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
@@ -398,7 +407,7 @@
             }
         }, { passive: true });
 
-        // Сетка - переключатель
+        // Сетка
         let gridBtn = document.getElementById('gridBtn');
         gridBtn.addEventListener('click', () => {
             showGrid = !showGrid;
@@ -412,23 +421,28 @@
         });
 
         // Профиль - отдельная страница
-        document.getElementById('tabProfile').addEventListener('click', () => {
+        function openProfile() {
             document.getElementById('tabProfile').classList.add('active');
             document.getElementById('tabBattle').classList.remove('active');
             profilePage.classList.add('show');
             updateProfile();
-        });
+        }
 
-        document.getElementById('tabBattle').addEventListener('click', () => {
-            document.getElementById('tabBattle').classList.add('active');
-            document.getElementById('tabProfile').classList.remove('active');
-            profilePage.classList.remove('show');
-        });
-
-        document.getElementById('closeProfile').addEventListener('click', () => {
+        function closeProfile() {
             profilePage.classList.remove('show');
             document.getElementById('tabBattle').classList.add('active');
             document.getElementById('tabProfile').classList.remove('active');
+        }
+
+        document.getElementById('tabProfile').addEventListener('click', openProfile);
+        document.getElementById('tabBattle').addEventListener('click', closeProfile);
+
+        // Кнопки в профиле
+        document.getElementById('profileBattleBtn').addEventListener('click', closeProfile);
+        document.getElementById('profileProfileBtn').addEventListener('click', () => {
+            document.getElementById('profileBattleBtn').classList.remove('active');
+            document.getElementById('profileProfileBtn').classList.add('active');
+            updateProfile();
         });
 
         // Админ
