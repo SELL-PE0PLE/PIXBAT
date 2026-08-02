@@ -155,10 +155,13 @@
         if (window.Telegram && Telegram.WebApp) {
             let u = Telegram.WebApp.initDataUnsafe?.user;
             if (u) {
+                let fullName = u.first_name || '';
+                if (u.last_name) {
+                    fullName += ' ' + u.last_name;
+                }
                 currentUser = { 
                     id: u.id, 
-                    name: u.first_name || 'Игрок', 
-                    username: u.username || '',
+                    name: fullName || 'Игрок',
                     photo: u.photo_url || '' 
                 };
                 updateProfile();
@@ -170,8 +173,7 @@
         }
         currentUser = { 
             id: 1393765131, 
-            name: 'Владелец (тест)', 
-            username: 'empty0_0',
+            name: 'Владелец (тест)',
             photo: '' 
         };
         updateProfile();
@@ -181,11 +183,7 @@
     function updateProfile() {
         if (!currentUser) return;
         document.getElementById('profileName').textContent = currentUser.name;
-        let idText = 'ID: ' + currentUser.id;
-        if (currentUser.username) {
-            idText += ' | @' + currentUser.username;
-        }
-        document.getElementById('profileId').textContent = idText;
+        document.getElementById('profileId').textContent = 'ID: ' + currentUser.id;
         if (currentUser.photo) {
             document.getElementById('profileAvatar').innerHTML = '<img src="'+currentUser.photo+'">';
         } else {
@@ -319,11 +317,7 @@
             if (pixels[idx]) {
                 let time = Math.floor((Date.now() - pixels[idx].time) / (1000*60*60*24));
                 let days = time > 0 ? time + ' дн.' : 'сегодня';
-                let displayName = pixels[idx].name;
-                if (pixels[idx].username) {
-                    displayName += ' (@' + pixels[idx].username + ')';
-                }
-                showToast('🎨 ' + displayName + ' (ID:' + pixels[idx].id + ') ' + days + ' (' + x + ',' + y + ')');
+                showToast('🎨 ' + (pixels[idx].name || 'anon') + ' (ID:' + pixels[idx].id + ') ' + days + ' (' + x + ',' + y + ')');
             } else {
                 showToast('⬜ Пусто (' + x + ',' + y + ')');
             }
@@ -340,7 +334,6 @@
                 color: selectedColor, 
                 id: currentUser.id, 
                 name: currentUser.name,
-                username: currentUser.username || '',
                 time: Date.now() 
             };
             render();
@@ -364,7 +357,6 @@
             color: selectedColor, 
             id: currentUser.id, 
             name: currentUser.name,
-            username: currentUser.username || '',
             time: Date.now() 
         };
         lastClick = now;
@@ -424,7 +416,6 @@
                 
                 if (lastTouchDist > 0) {
                     let delta = dist / lastTouchDist;
-                    // НАОБОРОТ: разводим → уменьшаем, сводим → увеличиваем
                     zoom = Math.max(10, Math.min(0.5, zoom * delta));
                     render();
                 }
