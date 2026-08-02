@@ -48,7 +48,7 @@
         .profile-page .block-row button.green { background: rgba(76,175,80,0.15); border-color: #4caf50; color: #4caf50; }
         .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(10,10,26,0.95); color: white; padding: 10px 20px; border-radius: 30px; border: 1px solid #e94560; font-size: 14px; opacity: 0; transition: 0.3s; z-index: 99; backdrop-filter: blur(8px); white-space: nowrap; pointer-events: none; }
         .toast.show { opacity: 1; }
-        .profile-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(10,10,26,0.95); backdrop-filter: blur(12px); display: flex; justify-content: space-around; padding: 8px 0 12px 0; border-top: 1px solid #2a2a4a; z-index: 25; }
+        .profile-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(10,10,26,0.95); backdrop-filter: blur(12px); display: none; justify-content: space-around; padding: 8px 0 12px 0; border-top: 1px solid #2a2a4a; z-index: 25; }
         .profile-nav button { background: transparent; border: none; color: #666; font-size: 13px; font-weight: 500; padding: 4px 20px; border-radius: 20px; cursor: pointer; }
         .profile-nav button.active { color: #e94560; background: rgba(233,69,96,0.1); }
         @media (max-width: 400px) { .color-btn { width: 26px; height: 26px; } }
@@ -70,6 +70,7 @@
     <div class="palette" id="palette"></div>
     <div id="toast" class="toast">👋 Кликни на холст!</div>
 </div>
+
     <div class="profile-page" id="profilePage">
     <div class="info">
         <div class="avatar" id="profileAvatar">👤</div>
@@ -95,13 +96,11 @@
     </div>
 </div>
 
-<!-- Навигация для профиля -->
 <div class="profile-nav" id="profileNav">
     <button id="profileBattleBtn">⚔️ Битва</button>
     <button class="active" id="profileProfileBtn">👤 Profile</button>
 </div>
 
-<!-- Основная навигация -->
 <div class="bottom-nav" id="mainNav">
     <button class="active" id="tabBattle">⚔️ Битва</button>
     <button id="tabProfile">👤 Profile</button>
@@ -251,8 +250,8 @@
         }
 
         let displayZoom = Math.round(zoom * 100);
-        if (displayZoom >= 9999) {
-            zoomLabel.textContent = '10000%';
+        if (displayZoom >= 999) {
+            zoomLabel.textContent = '1000%';
         } else {
             zoomLabel.textContent = displayZoom + '%';
         }
@@ -372,7 +371,7 @@
     }
 
     function setup() {
-        // ЗУМ - ПРАВИЛЬНАЯ СТОРОНА
+        // ЗУМ - ПРАВИЛЬНАЯ СТОРОНА (разъезжаемся → увеличиваем)
         let lastTouchDist = 0;
         canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
@@ -389,9 +388,9 @@
                 let dy = e.touches[0].clientY - e.touches[1].clientY;
                 let dist = Math.sqrt(dx*dx + dy*dy);
                 if (lastTouchDist > 0) {
-                    // МЕНЯЕМ ЗНАК: сводим → увеличиваем
-                    let delta = lastTouchDist / dist;
-                    zoom = Math.min(100, Math.max(0.5, zoom * delta));
+                    // РАЗЪЕЗЖАЕМСЯ → УВЕЛИЧИВАЕМ
+                    let delta = dist / lastTouchDist;
+                    zoom = Math.min(10, Math.max(0.5, zoom * delta));
                     render();
                 }
                 lastTouchDist = dist;
