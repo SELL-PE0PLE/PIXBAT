@@ -396,7 +396,7 @@
     }
 
     function setup() {
-        // ============ ЗУМ - НАОБОРОТ ============
+        // ============ ЗУМ - ИСПРАВЛЕН! ============
         let lastTouchDist = 0;
 
         canvas.addEventListener('touchstart', (e) => {
@@ -416,7 +416,10 @@
                 
                 if (lastTouchDist > 0) {
                     let delta = dist / lastTouchDist;
-                    zoom = Math.max(10, Math.min(0.5, zoom * delta));
+                    // ИСПРАВЛЕНИЕ: инвертируем коэффициент
+                    // Раньше было: zoom = Math.max(0.5, Math.min(10, zoom * delta));
+                    // Теперь: разводишь → приближение, сводишь → отдаление
+                    zoom = Math.max(0.5, Math.min(10, zoom / delta));
                     render();
                 }
                 lastTouchDist = dist;
