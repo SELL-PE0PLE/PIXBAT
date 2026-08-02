@@ -275,10 +275,11 @@
             }
         }
 
-        let displayZoom = Math.round(zoom * 100);
+        // ИСПРАВЛЕНО ОТОБРАЖЕНИЕ ПРОЦЕНТОВ
+        let displayZoom = Math.round((1 / zoom) * 100);
         zoomLabel.textContent = displayZoom + '%';
         
-        canPlace = zoom >= 3;
+        canPlace = zoom <= 0.333; // 300%+ (1/3 = ~333%)
     }
 
     function getCoords(clientX, clientY) {
@@ -396,7 +397,7 @@
     }
 
     function setup() {
-        // ============ ЗУМ - ИСПРАВЛЕН! ============
+        // ============ ЗУМ - ИСПРАВЛЕН ПОЛНОСТЬЮ ============
         let lastTouchDist = 0;
 
         canvas.addEventListener('touchstart', (e) => {
@@ -416,10 +417,8 @@
                 
                 if (lastTouchDist > 0) {
                     let delta = dist / lastTouchDist;
-                    // ИСПРАВЛЕНИЕ: инвертируем коэффициент
-                    // Раньше было: zoom = Math.max(0.5, Math.min(10, zoom * delta));
-                    // Теперь: разводишь → приближение, сводишь → отдаление
-                    zoom = Math.max(0.5, Math.min(10, zoom / delta));
+                    // ИСПРАВЛЕНО: разводишь → отдаление, сводишь → приближение
+                    zoom = Math.max(0.1, Math.min(2, zoom / delta));
                     render();
                 }
                 lastTouchDist = dist;
@@ -504,4 +503,4 @@
 })();
 </script>
 </body>
-</html>
+    </html>
