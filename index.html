@@ -8,7 +8,10 @@
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
         body { background: #0a0a1a; display: flex; justify-content: center; padding: 12px 12px 80px 12px; font-family: -apple-system, sans-serif; min-height: 100vh; touch-action: pan-x pan-y; }
         #app { max-width: 500px; width: 100%; }
-        h1 { color: #e94560; text-align: center; font-size: 24px; margin-bottom: 10px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        h1 { color: #e94560; font-size: 24px; }
+        .profile-btn { background: rgba(255,255,255,0.08); border: none; color: #aaa; padding: 6px 14px; border-radius: 20px; font-size: 14px; cursor: pointer; }
+        .profile-btn.active { background: rgba(233,69,96,0.2); color: #e94560; }
         .support { background: linear-gradient(135deg, #e94560, #c23152); color: white; border: none; padding: 10px; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; }
         .canvas-wrap { width: 100%; aspect-ratio: 1/1; background: white; border-radius: 16px; overflow: hidden; border: 2px solid #2a2a4a; position: relative; touch-action: pan-x pan-y; }
         #canvas { width: 100%; height: 100%; image-rendering: pixelated; cursor: crosshair; display: block; touch-action: pan-x pan-y; }
@@ -52,7 +55,10 @@
 </head>
 <body>
 <div id="app">
-    <h1>⚔️ Pixel Battle</h1>
+    <div class="header">
+        <h1>⚔️ Pixel Battle</h1>
+        <button class="profile-btn" id="profileToggle">👤 Profile</button>
+    </div>
     <button class="support" id="supportBtn">❤️ Поддержите нас подпиской</button>
     <div class="canvas-wrap" id="canvasWrap">
         <canvas id="canvas" width="1000" height="1000"></canvas>
@@ -125,6 +131,7 @@
     const toast = document.getElementById('toast');
     const zoomLabel = document.getElementById('zoomLabel');
     const profilePanel = document.getElementById('profilePanel');
+    const profileToggle = document.getElementById('profileToggle');
 
     function initUser() {
         if (window.Telegram && Telegram.WebApp) {
@@ -135,8 +142,10 @@
                 return;
             }
         }
-        currentUser = { id: Math.floor(Math.random()*1000000)+1000000, name: 'Player', photo: '' };
+        // Если не в Telegram — показываем тестового пользователя
+        currentUser = { id: 1393765131, name: 'Владелец (тест)', photo: '' };
         updateProfile();
+        showToast('⚠️ Режим теста. Настоящие ID из Telegram');
     }
 
     function updateProfile() {
@@ -383,10 +392,15 @@
             }
         }, { passive: true });
 
-        // Сетка
-        document.getElementById('gridBtn').addEventListener('click', () => {
+        // Сетка - переключатель как админка
+        let gridBtn = document.getElementById('gridBtn');
+        gridBtn.addEventListener('click', () => {
             showGrid = !showGrid;
-            document.getElementById('gridBtn').classList.toggle('active');
+            if (showGrid) {
+                gridBtn.classList.add('active');
+            } else {
+                gridBtn.classList.remove('active');
+            }
             render();
         });
 
@@ -395,18 +409,13 @@
             window.open('https://t.me/empty0_0channel/3', '_blank');
         });
 
-        // Вкладки
-        document.getElementById('tabBattle').addEventListener('click', () => {
-            document.getElementById('tabBattle').classList.add('active');
-            document.getElementById('tabProfile').classList.remove('active');
-            profilePanel.classList.remove('show');
-        });
-
-        document.getElementById('tabProfile').addEventListener('click', () => {
-            document.getElementById('tabProfile').classList.add('active');
-            document.getElementById('tabBattle').classList.remove('active');
-            profilePanel.classList.add('show');
-            updateProfile();
+        // Профиль - отдельная страница
+        profileToggle.addEventListener('click', () => {
+            let isOpen = profilePanel.classList.toggle('show');
+            profileToggle.classList.toggle('active');
+            if (isOpen) {
+                updateProfile();
+            }
         });
 
         // Админ
