@@ -6,58 +6,56 @@
     <title>Pixel Battle</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-        body { background: #0a0a1a; display: flex; justify-content: center; padding: 12px 12px 80px 12px; font-family: -apple-system, sans-serif; min-height: 100vh; touch-action: pan-x pan-y; }
-        #app { max-width: 500px; width: 100%; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        h1 { color: #e94560; font-size: 24px; }
-        .profile-btn { background: rgba(255,255,255,0.08); border: none; color: #aaa; padding: 6px 14px; border-radius: 20px; font-size: 14px; cursor: pointer; }
-        .profile-btn.active { background: rgba(233,69,96,0.2); color: #e94560; }
-        .support { background: linear-gradient(135deg, #e94560, #c23152); color: white; border: none; padding: 10px; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; }
-        .canvas-wrap { width: 100%; aspect-ratio: 1/1; background: white; border-radius: 16px; overflow: hidden; border: 2px solid #2a2a4a; position: relative; touch-action: pan-x pan-y; }
+        body { background: #0a0a1a; display: flex; justify-content: center; padding: 0; font-family: -apple-system, sans-serif; min-height: 100vh; touch-action: pan-x pan-y; overflow: hidden; }
+        #app { max-width: 500px; width: 100%; height: 100vh; display: flex; flex-direction: column; padding: 10px 12px 70px 12px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-shrink: 0; }
+        h1 { color: #e94560; font-size: 22px; }
+        .support { background: linear-gradient(135deg, #e94560, #c23152); color: white; border: none; padding: 8px; border-radius: 30px; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 8px; flex-shrink: 0; }
+        .canvas-wrap { width: 100%; flex: 1; background: white; border-radius: 16px; overflow: hidden; border: 2px solid #2a2a4a; position: relative; touch-action: pan-x pan-y; min-height: 0; }
         #canvas { width: 100%; height: 100%; image-rendering: pixelated; cursor: crosshair; display: block; touch-action: pan-x pan-y; }
-        .zoom-label { position: absolute; bottom: 8px; right: 12px; background: rgba(0,0,0,0.6); color: #ccc; padding: 2px 12px; border-radius: 12px; font-size: 12px; pointer-events: none; }
-        .controls { display: flex; gap: 6px; justify-content: center; margin: 8px 0; flex-wrap: wrap; }
-        .controls button { background: rgba(255,255,255,0.06); border: 1px solid #2a2a4a; color: #ccc; padding: 5px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; }
+        .zoom-label { position: absolute; bottom: 8px; right: 12px; background: rgba(0,0,0,0.6); color: #ccc; padding: 2px 10px; border-radius: 12px; font-size: 11px; pointer-events: none; }
+        .controls { display: flex; gap: 6px; justify-content: center; margin: 6px 0; flex-shrink: 0; flex-wrap: wrap; }
+        .controls button { background: rgba(255,255,255,0.06); border: 1px solid #2a2a4a; color: #ccc; padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; }
         .controls button.active { background: rgba(233,69,96,0.2); border-color: #e94560; color: #e94560; }
-        .palette { display: flex; gap: 6px; justify-content: center; margin: 8px 0; flex-wrap: wrap; }
-        .color-btn { width: 32px; height: 32px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+        .palette { display: flex; gap: 5px; justify-content: center; margin: 4px 0; flex-shrink: 0; flex-wrap: wrap; }
+        .color-btn { width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; flex-shrink: 0; }
         .color-btn.selected { border-color: white; box-shadow: 0 0 16px rgba(233,69,96,0.5); transform: scale(1.1); }
         .color-btn.empty { background: repeating-conic-gradient(#ccc 0% 25%, white 0% 50%) 50% / 8px 8px; border-color: #555; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(10,10,26,0.95); backdrop-filter: blur(12px); display: flex; justify-content: space-around; padding: 10px 0 14px 0; border-top: 1px solid #2a2a4a; z-index: 10; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(10,10,26,0.95); backdrop-filter: blur(12px); display: flex; justify-content: space-around; padding: 8px 0 12px 0; border-top: 1px solid #2a2a4a; z-index: 10; }
         .bottom-nav button { background: transparent; border: none; color: #666; font-size: 13px; font-weight: 500; padding: 4px 20px; border-radius: 20px; cursor: pointer; }
         .bottom-nav button.active { color: #e94560; background: rgba(233,69,96,0.1); }
-        .profile-panel { background: rgba(255,255,255,0.04); border-radius: 16px; padding: 16px; border: 1px solid #2a2a4a; display: none; margin-top: 10px; }
-        .profile-panel.show { display: block; }
-        .profile-panel .info { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-        .profile-panel .avatar { width: 48px; height: 48px; border-radius: 50%; background: #2a2a4a; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid #e94560; overflow: hidden; }
-        .profile-panel .avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .profile-panel .name { font-size: 16px; font-weight: 600; }
-        .profile-panel .id { font-size: 12px; color: #888; }
-        .profile-panel .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; margin-bottom: 12px; }
-        .profile-panel .stats .stat { display: flex; justify-content: space-between; font-size: 13px; }
-        .profile-panel .stats .stat span:first-child { color: #888; }
-        .profile-panel .stats .stat span:last-child { color: #eee; font-weight: 500; }
-        .toggle-wrap { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
-        .toggle-wrap label { font-size: 13px; color: #aaa; }
-        .toggle { width: 44px; height: 26px; background: #2a2a4a; border-radius: 13px; cursor: pointer; position: relative; transition: 0.3s; flex-shrink: 0; }
-        .toggle.active { background: #e94560; }
-        .toggle .thumb { position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-        .toggle.active .thumb { left: 20px; }
-        .block-row { display: flex; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
-        .block-row input { flex: 1; min-width: 80px; background: rgba(255,255,255,0.06); border: 1px solid #2a2a4a; color: white; padding: 6px 12px; border-radius: 20px; font-size: 14px; outline: none; }
-        .block-row input:focus { border-color: #e94560; }
-        .block-row button { background: rgba(233,69,96,0.15); border: 1px solid #e94560; color: #e94560; padding: 6px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; }
-        .block-row button.green { background: rgba(76,175,80,0.15); border-color: #4caf50; color: #4caf50; }
+        .profile-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a1a; z-index: 20; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
+        .profile-page.show { display: flex; }
+        .profile-page .close { align-self: flex-end; background: none; border: none; color: #e94560; font-size: 24px; cursor: pointer; padding: 8px; }
+        .profile-page .info { display: flex; align-items: center; gap: 14px; margin: 10px 0 16px 0; }
+        .profile-page .avatar { width: 56px; height: 56px; border-radius: 50%; background: #2a2a4a; display: flex; align-items: center; justify-content: center; font-size: 28px; border: 2px solid #e94560; overflow: hidden; flex-shrink: 0; }
+        .profile-page .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-page .name { font-size: 18px; font-weight: 600; }
+        .profile-page .id { font-size: 13px; color: #888; }
+        .profile-page .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; background: rgba(0,0,0,0.3); padding: 14px; border-radius: 12px; margin-bottom: 16px; }
+        .profile-page .stats .stat { display: flex; justify-content: space-between; font-size: 14px; }
+        .profile-page .stats .stat span:first-child { color: #888; }
+        .profile-page .stats .stat span:last-child { color: #eee; font-weight: 500; }
+        .profile-page .toggle-wrap { display: flex; align-items: center; gap: 12px; margin: 8px 0; }
+        .profile-page .toggle-wrap label { font-size: 14px; color: #aaa; }
+        .profile-page .toggle { width: 48px; height: 28px; background: #2a2a4a; border-radius: 14px; cursor: pointer; position: relative; transition: 0.3s; flex-shrink: 0; }
+        .profile-page .toggle.active { background: #e94560; }
+        .profile-page .toggle .thumb { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .profile-page .toggle.active .thumb { left: 23px; }
+        .profile-page .block-row { display: flex; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
+        .profile-page .block-row input { flex: 1; min-width: 80px; background: rgba(255,255,255,0.06); border: 1px solid #2a2a4a; color: white; padding: 8px 14px; border-radius: 20px; font-size: 14px; outline: none; }
+        .profile-page .block-row input:focus { border-color: #e94560; }
+        .profile-page .block-row button { background: rgba(233,69,96,0.15); border: 1px solid #e94560; color: #e94560; padding: 8px 18px; border-radius: 20px; font-size: 14px; cursor: pointer; }
+        .profile-page .block-row button.green { background: rgba(76,175,80,0.15); border-color: #4caf50; color: #4caf50; }
         .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(10,10,26,0.95); color: white; padding: 10px 20px; border-radius: 30px; border: 1px solid #e94560; font-size: 14px; opacity: 0; transition: 0.3s; z-index: 99; backdrop-filter: blur(8px); white-space: nowrap; pointer-events: none; }
         .toast.show { opacity: 1; }
-        @media (max-width: 400px) { .color-btn { width: 28px; height: 28px; } }
+        @media (max-width: 400px) { .color-btn { width: 26px; height: 26px; } }
     </style>
 </head>
 <body>
 <div id="app">
     <div class="header">
         <h1>⚔️ Pixel Battle</h1>
-        <button class="profile-btn" id="profileToggle">👤 Profile</button>
     </div>
     <button class="support" id="supportBtn">❤️ Поддержите нас подпиской</button>
     <div class="canvas-wrap" id="canvasWrap">
@@ -70,34 +68,35 @@
     <div class="palette" id="palette"></div>
     <div id="toast" class="toast">👋 Кликни на холст!</div>
 </div>
-<div class="bottom-nav">
-    <button class="active" id="tabBattle">⚔️ Битва</button>
-    <button id="tabProfile">👤 Profile</button>
-</div>
-
-<div class="profile-panel" id="profilePanel">
+<div class="profile-page" id="profilePage">
+    <button class="close" id="closeProfile">✕</button>
     <div class="info">
-        <div class="avatar" id="avatar">👤</div>
+        <div class="avatar" id="profileAvatar">👤</div>
         <div>
-            <div class="name" id="userName">Игрок</div>
-            <div class="id" id="userId">ID: ---</div>
+            <div class="name" id="profileName">Игрок</div>
+            <div class="id" id="profileId">ID: ---</div>
         </div>
     </div>
     <div class="stats">
-        <div class="stat"><span>Первый</span><span id="firstPixel">—</span></div>
-        <div class="stat"><span>Последний</span><span id="lastPixel">—</span></div>
-        <div class="stat"><span>Всего</span><span id="totalPixels">0</span></div>
-        <div class="stat"><span>Статус</span><span id="userStatus">✅</span></div>
+        <div class="stat"><span>Первый</span><span id="pFirst">—</span></div>
+        <div class="stat"><span>Последний</span><span id="pLast">—</span></div>
+        <div class="stat"><span>Всего</span><span id="pTotal">0</span></div>
+        <div class="stat"><span>Статус</span><span id="pStatus">✅</span></div>
     </div>
     <div class="toggle-wrap">
         <label>Режим Администратора</label>
         <div class="toggle" id="adminToggle"><div class="thumb"></div></div>
     </div>
     <div class="block-row">
-        <input type="number" id="blockInput" placeholder="ID пользователя" min="1">
+        <input type="number" id="blockInput" placeholder="ID пользователя">
         <button id="blockBtn">⛔ Блок</button>
         <button class="green" id="unblockBtn">✅ Разблок</button>
     </div>
+</div>
+
+<div class="bottom-nav">
+    <button class="active" id="tabBattle">⚔️ Битва</button>
+    <button id="tabProfile">👤 Profile</button>
 </div>
 <script>
 (function() {
@@ -124,14 +123,14 @@
     let adminMode = false;
     let currentUser = null;
     let blockedUsers = new Set();
+    let canPlace = false; // можно ставить только при зуме > 3
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const palette = document.getElementById('palette');
     const toast = document.getElementById('toast');
     const zoomLabel = document.getElementById('zoomLabel');
-    const profilePanel = document.getElementById('profilePanel');
-    const profileToggle = document.getElementById('profileToggle');
+    const profilePage = document.getElementById('profilePage');
 
     function initUser() {
         if (window.Telegram && Telegram.WebApp) {
@@ -142,27 +141,25 @@
                 return;
             }
         }
-        // Если не в Telegram — показываем тестового пользователя
         currentUser = { id: 1393765131, name: 'Владелец (тест)', photo: '' };
         updateProfile();
-        showToast('⚠️ Режим теста. Настоящие ID из Telegram');
     }
 
     function updateProfile() {
         if (!currentUser) return;
-        document.getElementById('userName').textContent = currentUser.name;
-        document.getElementById('userId').textContent = 'ID: ' + currentUser.id;
+        document.getElementById('profileName').textContent = currentUser.name;
+        document.getElementById('profileId').textContent = 'ID: ' + currentUser.id;
         if (currentUser.photo) {
-            document.getElementById('avatar').innerHTML = '<img src="'+currentUser.photo+'">';
+            document.getElementById('profileAvatar').innerHTML = '<img src="'+currentUser.photo+'">';
         } else {
-            document.getElementById('avatar').textContent = '👤';
+            document.getElementById('profileAvatar').textContent = '👤';
         }
         let stats = getStats(currentUser.id);
-        document.getElementById('firstPixel').textContent = stats.first ? new Date(stats.first).toLocaleDateString() : '—';
-        document.getElementById('lastPixel').textContent = stats.last ? new Date(stats.last).toLocaleDateString() : '—';
-        document.getElementById('totalPixels').textContent = stats.total || 0;
+        document.getElementById('pFirst').textContent = stats.first ? new Date(stats.first).toLocaleDateString() : '—';
+        document.getElementById('pLast').textContent = stats.last ? new Date(stats.last).toLocaleDateString() : '—';
+        document.getElementById('pTotal').textContent = stats.total || 0;
         let blocked = blockedUsers.has(currentUser.id);
-        let status = document.getElementById('userStatus');
+        let status = document.getElementById('pStatus');
         status.textContent = blocked ? '⛔ Заблокирован' : '✅ Активен';
         status.style.color = blocked ? '#e94560' : '#4caf50';
     }
@@ -232,9 +229,9 @@
         }
 
         if (showGrid) {
-            ctx.strokeStyle = 'rgba(0,0,0,0.06)';
-            ctx.lineWidth = 0.3;
-            let gridStep = Math.max(1, Math.floor(50 / zoom));
+            ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+            ctx.lineWidth = 0.5;
+            let gridStep = Math.max(1, Math.floor(20 / zoom));
             for (let i = startX; i <= endX; i += gridStep) {
                 ctx.beginPath(); ctx.moveTo(i, startY); ctx.lineTo(i, endY); ctx.stroke();
             }
@@ -244,6 +241,9 @@
         }
 
         zoomLabel.textContent = Math.round(zoom * 100) + '%';
+        
+        // Разрешаем ставить только при зуме > 3 (300%)
+        canPlace = zoom >= 3;
     }
 
     function getCoords(clientX, clientY) {
@@ -268,12 +268,18 @@
     function handleClick(clientX, clientY) {
         if (!currentUser) { showToast('⚠️ Ошибка пользователя'); return; }
 
+        // Проверка: можно ставить только при зуме > 3
+        if (!canPlace && selectedColor !== null) {
+            showToast('🔍 Приблизьтесь (300%+) чтобы ставить');
+            return;
+        }
+
         let { x, y } = getCoords(clientX, clientY);
         if (x < 0 || x >= SIZE || y < 0 || y >= SIZE) { showToast('❌ Вне холста'); return; }
 
         let idx = y * SIZE + x;
 
-        // Если выбран режим "Без цвета" - показываем информацию
+        // Режим "Без цвета" - информация
         if (selectedColor === null) {
             if (pixels[idx]) {
                 let time = Math.floor((Date.now() - pixels[idx].time) / (1000*60*60*24));
@@ -372,7 +378,7 @@
                 let dist = Math.sqrt(dx*dx + dy*dy);
                 if (lastTouchDist > 0) {
                     let delta = dist / lastTouchDist;
-                    zoom = Math.min(20, Math.max(0.5, zoom * delta));
+                    zoom = Math.min(100, Math.max(0.5, zoom * delta));
                     render();
                 }
                 lastTouchDist = dist;
@@ -392,15 +398,11 @@
             }
         }, { passive: true });
 
-        // Сетка - переключатель как админка
+        // Сетка - переключатель
         let gridBtn = document.getElementById('gridBtn');
         gridBtn.addEventListener('click', () => {
             showGrid = !showGrid;
-            if (showGrid) {
-                gridBtn.classList.add('active');
-            } else {
-                gridBtn.classList.remove('active');
-            }
+            gridBtn.classList.toggle('active');
             render();
         });
 
@@ -410,12 +412,23 @@
         });
 
         // Профиль - отдельная страница
-        profileToggle.addEventListener('click', () => {
-            let isOpen = profilePanel.classList.toggle('show');
-            profileToggle.classList.toggle('active');
-            if (isOpen) {
-                updateProfile();
-            }
+        document.getElementById('tabProfile').addEventListener('click', () => {
+            document.getElementById('tabProfile').classList.add('active');
+            document.getElementById('tabBattle').classList.remove('active');
+            profilePage.classList.add('show');
+            updateProfile();
+        });
+
+        document.getElementById('tabBattle').addEventListener('click', () => {
+            document.getElementById('tabBattle').classList.add('active');
+            document.getElementById('tabProfile').classList.remove('active');
+            profilePage.classList.remove('show');
+        });
+
+        document.getElementById('closeProfile').addEventListener('click', () => {
+            profilePage.classList.remove('show');
+            document.getElementById('tabBattle').classList.add('active');
+            document.getElementById('tabProfile').classList.remove('active');
         });
 
         // Админ
