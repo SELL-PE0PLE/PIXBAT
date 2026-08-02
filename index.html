@@ -404,7 +404,7 @@
     }
 
     function setup() {
-        // ============ ЗУМ ============
+        // ============ ЗУМ - НАОБОРОТ ============
         let lastTouchDist = 0;
 
         canvas.addEventListener('touchstart', (e) => {
@@ -424,7 +424,8 @@
                 
                 if (lastTouchDist > 0) {
                     let delta = dist / lastTouchDist;
-                    zoom = Math.min(10, Math.max(0.5, zoom * delta));
+                    // НАОБОРОТ: разводим → уменьшаем, сводим → увеличиваем
+                    zoom = Math.max(10, Math.min(0.5, zoom * delta));
                     render();
                 }
                 lastTouchDist = dist;
