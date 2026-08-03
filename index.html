@@ -14,41 +14,6 @@
         .canvas-wrap { width: 100%; aspect-ratio: 1/1; background: #2a2a3a; border-radius: 16px; overflow: hidden; border: 3px solid #e94560; position: relative; touch-action: pan-x pan-y; flex-shrink: 0; }
         #canvas { width: 100%; height: 100%; image-rendering: pixelated; cursor: crosshair; display: block; touch-action: pan-x pan-y; background: #ffffff; }
         .zoom-label { position: absolute; bottom: 8px; right: 12px; background: rgba(0,0,0,0.7); color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 11px; pointer-events: none; border: 1px solid #e94560; }
-        
-        /* Кнопки зума + и - */
-        .zoom-controls {
-            position: absolute;
-            bottom: 50px;
-            right: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            z-index: 5;
-        }
-        .zoom-controls button {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: rgba(0,0,0,0.7);
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            backdrop-filter: blur(8px);
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .zoom-controls button:hover {
-            background: rgba(233,69,96,0.3);
-            border-color: #e94560;
-        }
-        .zoom-controls button:active {
-            transform: scale(0.9);
-        }
-        
         .controls { display: flex; gap: 6px; justify-content: center; margin: 6px 0; flex-shrink: 0; flex-wrap: wrap; }
         .controls button { background: rgba(255,255,255,0.06); border: 1px solid #2a2a4a; color: #ccc; padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; }
         .controls button.active { background: rgba(233,69,96,0.2); border-color: #e94560; color: #e94560; }
@@ -184,12 +149,6 @@
     <div class="canvas-wrap" id="canvasWrap">
         <canvas id="canvas" width="1000" height="1000"></canvas>
         <div class="zoom-label" id="zoomLabel">100%</div>
-        
-        <!-- Кнопки + и - для зума -->
-        <div class="zoom-controls">
-            <button id="zoomInBtn">+</button>
-            <button id="zoomOutBtn">−</button>
-        </div>
     </div>
     <div class="controls">
         <button id="gridBtn">📐 Сетка</button>
@@ -259,7 +218,7 @@
 <div class="bottom-nav" id="mainNav">
     <button class="active" id="tabBattle">⚔️ Битва</button>
     <button id="tabProfile">👤 Profile</button>
-</div>
+    </div>
     <script>
 (function() {
     const SIZE = 1000;
@@ -299,7 +258,6 @@
     const adminBat = document.getElementById('adminBat');
     const adminPanel = document.getElementById('adminPanel');
 
-    // ===== ФУНКЦИИ ЗУМА =====
     function zoomIn() {
         zoom = Math.max(0.01, zoom / 1.3);
         render();
@@ -310,48 +268,75 @@
         render();
     }
 
+    // ===== НОВАЯ СИСТЕМА ПОЛУЧЕНИЯ ДАННЫХ =====
     function initUser() {
+        // Способ 1: Telegram WebApp
         if (window.Telegram && Telegram.WebApp) {
             try {
                 Telegram.WebApp.ready();
-                setTimeout(() => {
-                    let u = Telegram.WebApp.initDataUnsafe?.user;
-                    if (u && u.id) {
-                        let fullName = u.first_name || '';
-                        if (u.last_name) {
-                            fullName += ' ' + u.last_name;
-                        }
-                        currentUser = { 
-                            id: u.id, 
-                            name: fullName.trim() || 'Игрок',
-                            photo: u.photo_url || '' 
-                        };
-                        updateProfile();
-                        if (currentUser.id === OWNER_ID) {
-                            adminBat.classList.add('show');
-                        }
-                    } else {
-                        showToast('⚠️ Ошибка: войдите в Telegram');
-                        currentUser = { 
-                            id: 0, 
-                            name: 'Ошибка',
-                            photo: '' 
-                        };
-                        updateProfile();
-                    }
-                }, 100);
-                return;
+                const userData = Telegram.WebApp.initDataUnsafe?.user;
+                if (userData && userData.id) {
+                    currentUser = {
+                        id: userData.id,
+                        name: [userData.first_name, userData.last_name].filter(Boolean).join(' ').trim() || 'Игрок',
+                        photo: userData.photo_url || ''
+                    };
+                    updateProfile();
+                    if (currentUser.id === OWNER_ID) adminBat.classList.add('show');
+                    return;
+                }
             } catch(e) {
-                console.error('Ошибка инициализации Telegram:', e);
+                console.warn('Telegram WebApp error:', e);
             }
         }
-        
-        showToast('⚠️ Ошибка: откройте в Telegram');
-        currentUser = { 
-            id: 0, 
-            name: 'Ошибка',
-            photo: '' 
-        };
+
+        // Способ 2: Прямой доступ к глобальному объекту (запасной вариант)
+        try {
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
+                const u = window.Telegram.WebApp.initDataUnsafe.user;
+                if (u && u.id) {
+                    currentUser = {
+                        id: u.id,
+                        name: [u.first_name, u.last_name].filter(Boolean).join(' ').trim() || 'Игрок',
+                        photo: u.photo_url || ''
+                    };
+                    updateProfile();
+                    if (currentUser.id === OWNER_ID) adminBat.classList.add('show');
+                    return;
+                }
+            }
+        } catch(e) {
+            console.warn('Fallback error:', e);
+        }
+
+        // Способ 3: Парсинг из строки (если данные в query string)
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const userParam = params.get('tgWebAppData');
+            if (userParam) {
+                const decoded = decodeURIComponent(userParam);
+                const match = decoded.match(/user=([^&]+)/);
+                if (match) {
+                    const userObj = JSON.parse(decodeURIComponent(match[1]));
+                    if (userObj && userObj.id) {
+                        currentUser = {
+                            id: userObj.id,
+                            name: [userObj.first_name, userObj.last_name].filter(Boolean).join(' ').trim() || 'Игрок',
+                            photo: userObj.photo_url || ''
+                        };
+                        updateProfile();
+                        if (currentUser.id === OWNER_ID) adminBat.classList.add('show');
+                        return;
+                    }
+                }
+            }
+        } catch(e) {
+            console.warn('URL parsing error:', e);
+        }
+
+        // Если ничего не сработало - ошибка
+        showToast('⚠️ Не удалось получить данные пользователя');
+        currentUser = { id: 0, name: 'Гость', photo: '' };
         updateProfile();
     }
 
@@ -663,7 +648,7 @@
             lastTouchDist = 0;
         }, { passive: true });
 
-        // ===== ЗУМ НА ПК (колёсико мыши) =====
+        // ===== ЗУМ НА ПК (только колёсико мыши) =====
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             if (e.deltaY < 0) {
@@ -774,12 +759,10 @@
         render();
 
         setInterval(savePixels, 5000);
-        // ===== УБРАЛ СТАРТОВЫЙ ТОСТ =====
-        // showToast('👋 Кликни на холст!');
     }
 
     document.addEventListener('DOMContentLoaded', setup);
 })();
 </script>
 </body>
-</html>
+    </html>
