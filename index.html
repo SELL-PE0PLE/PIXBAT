@@ -68,6 +68,76 @@
         .profile-nav button { background: transparent; border: none; color: #666; font-size: 13px; font-weight: 500; padding: 4px 20px; border-radius: 20px; cursor: pointer; }
         .profile-nav button.active { color: #e94560; background: rgba(233,69,96,0.1); }
         @media (max-width: 400px) { .color-btn { width: 26px; height: 26px; } }
+
+        /* ===== АДМИН-ПАНЕЛЬ ===== */
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a1a;
+            z-index: 30;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .admin-panel.show { display: flex; }
+        .admin-panel h2 { color: #e94560; font-size: 20px; margin-bottom: 16px; }
+        .admin-panel .back-btn {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid #2a2a4a;
+            color: #ccc;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 16px;
+            align-self: flex-start;
+        }
+        .admin-panel .back-btn:hover { background: rgba(255,255,255,0.1); }
+        .admin-panel .section {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+        .admin-panel .section h3 { color: #eee; font-size: 15px; margin-bottom: 10px; }
+        .admin-panel .section label { color: #888; font-size: 13px; display: block; margin: 6px 0; }
+        .admin-panel .section input[type="number"],
+        .admin-panel .section input[type="text"] {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid #2a2a4a;
+            background: rgba(255,255,255,0.05);
+            color: #eee;
+            font-size: 14px;
+            margin: 4px 0 10px 0;
+        }
+        .admin-panel .section button {
+            background: rgba(233,69,96,0.2);
+            border: 1px solid #e94560;
+            color: #e94560;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            cursor: pointer;
+            margin: 4px 6px 4px 0;
+        }
+        .admin-panel .section button:hover { background: rgba(233,69,96,0.3); }
+        .admin-panel .section .stat-row {
+            display: flex;
+            justify-content: space-between;
+            color: #aaa;
+            font-size: 13px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .admin-panel .section .stat-row span:last-child { color: #eee; }
+        .admin-panel .danger { border-color: #e94560; }
+        .admin-panel .danger button { border-color: #e94560; color: #e94560; }
     </style>
 </head>
 <body>
@@ -102,6 +172,41 @@
     </div>
 </div>
 
+<!-- ===== АДМИН-ПАНЕЛЬ ===== -->
+<div class="admin-panel" id="adminPanel">
+    <button class="back-btn" id="adminBackBtn">← Назад</button>
+    <h2>👑 Админ-панель</h2>
+    
+    <div class="section">
+        <h3>📊 Статистика</h3>
+        <div class="stat-row"><span>Всего пикселей</span><span id="adminTotalPixels">0</span></div>
+        <div class="stat-row"><span>Всего игроков</span><span id="adminTotalPlayers">0</span></div>
+    </div>
+
+    <div class="section">
+        <h3>⏱ Кулдаун</h3>
+        <label>Секунд между пикселями</label>
+        <input type="number" id="adminCooldownInput" value="10" min="1" max="3600">
+        <button id="adminSetCooldown">Сохранить</button>
+    </div>
+
+    <div class="section danger">
+        <h3>🚫 Блокировка</h3>
+        <label>ID пользователя для блокировки</label>
+        <input type="text" id="adminBlockInput" placeholder="Введите ID">
+        <button id="adminBlockBtn">⛔ Заблокировать</button>
+        <button id="adminUnblockBtn">✅ Разблокировать</button>
+        <div style="margin-top:8px;color:#888;font-size:12px;">
+            Заблокированные: <span id="adminBlockedList">—</span>
+        </div>
+    </div>
+
+    <div class="section danger">
+        <h3>🗑 Очистка холста</h3>
+        <button id="adminClearPixels" style="background:rgba(233,69,96,0.3);border-color:#e94560;color:#e94560;">⚠️ Очистить все пиксели</button>
+    </div>
+</div>
+
 <!-- Кнопка-мышь (админка, только для владельца) -->
 <div class="admin-bat" id="adminBat">🦇</div>
 
@@ -113,8 +218,8 @@
 <div class="bottom-nav" id="mainNav">
     <button class="active" id="tabBattle">⚔️ Битва</button>
     <button id="tabProfile">👤 Profile</button>
-</div>
-<script>
+    </div>
+    <script>
 (function() {
     const SIZE = 1000;
     const OWNER_ID = 1393765131;
@@ -140,6 +245,7 @@
     let currentUser = null;
     let blockedUsers = new Set();
     let canPlace = false;
+    let cooldown = 10000;
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -150,6 +256,7 @@
     const profileNav = document.getElementById('profileNav');
     const mainNav = document.getElementById('mainNav');
     const adminBat = document.getElementById('adminBat');
+    const adminPanel = document.getElementById('adminPanel');
 
     function initUser() {
         if (window.Telegram && Telegram.WebApp) {
@@ -171,28 +278,37 @@
                 return;
             }
         }
+        showToast('⚠️ Ошибка: нет данных пользователя');
         currentUser = { 
-            id: 1393765131, 
-            name: 'Владелец (тест)',
+            id: 0, 
+            name: 'Ошибка',
             photo: '' 
         };
         updateProfile();
-        adminBat.classList.add('show');
     }
 
     function updateProfile() {
         if (!currentUser) return;
-        document.getElementById('profileName').textContent = currentUser.name;
+        
+        let displayName = currentUser.name;
+        if (currentUser.id === OWNER_ID) {
+            displayName = currentUser.name + ' ✅';
+        }
+        
+        document.getElementById('profileName').textContent = displayName;
         document.getElementById('profileId').textContent = 'ID: ' + currentUser.id;
+        
         if (currentUser.photo) {
             document.getElementById('profileAvatar').innerHTML = '<img src="'+currentUser.photo+'">';
         } else {
             document.getElementById('profileAvatar').textContent = '👤';
         }
+        
         let stats = getStats(currentUser.id);
         document.getElementById('pFirst').textContent = stats.first ? new Date(stats.first).toLocaleDateString() : '—';
         document.getElementById('pLast').textContent = stats.last ? new Date(stats.last).toLocaleDateString() : '—';
         document.getElementById('pTotal').textContent = stats.total || 0;
+        
         let blocked = blockedUsers.has(currentUser.id);
         let status = document.getElementById('pStatus');
         status.textContent = blocked ? '⛔ Заблокирован' : '✅ Активен';
@@ -220,6 +336,7 @@
 
     function saveBlocked() {
         localStorage.setItem('blockedUsers', JSON.stringify([...blockedUsers]));
+        updateAdminPanel();
     }
 
     function loadPixels() {
@@ -303,7 +420,6 @@
     }
 
     let lastClick = 0;
-    const COOLDOWN = 10000;
 
     function handleClick(clientX, clientY) {
         if (!currentUser) { showToast('⚠️ Ошибка пользователя'); return; }
@@ -348,8 +464,8 @@
         }
 
         let now = Date.now();
-        if (now - lastClick < COOLDOWN) {
-            showToast('⏳ Подожди ' + Math.ceil((COOLDOWN - (now - lastClick))/1000) + 'с');
+        if (now - lastClick < cooldown) {
+            showToast('⏳ Подожди ' + Math.ceil((cooldown - (now - lastClick))/1000) + 'с');
             return;
         }
 
@@ -400,6 +516,36 @@
         });
     }
 
+    // ===== АДМИН-ПАНЕЛЬ =====
+    function updateAdminPanel() {
+        if (currentUser && currentUser.id === OWNER_ID) {
+            let totalPixels = pixels.filter(p => p !== null).length;
+            document.getElementById('adminTotalPixels').textContent = totalPixels;
+            
+            let players = new Set();
+            for (let p of pixels) {
+                if (p && p.id) players.add(p.id);
+            }
+            document.getElementById('adminTotalPlayers').textContent = players.size;
+            
+            document.getElementById('adminBlockedList').textContent = [...blockedUsers].join(', ') || '—';
+            document.getElementById('adminCooldownInput').value = cooldown / 1000;
+        }
+    }
+
+    function openAdminPanel() {
+        if (currentUser && currentUser.id === OWNER_ID) {
+            adminPanel.classList.add('show');
+            updateAdminPanel();
+        } else {
+            showToast('❌ Только для владельца');
+        }
+    }
+
+    function closeAdminPanel() {
+        adminPanel.classList.remove('show');
+    }
+
     function setup() {
         let lastTouchDist = 0;
 
@@ -420,8 +566,7 @@
                 
                 if (lastTouchDist > 0) {
                     let delta = dist / lastTouchDist;
-                    // Максимальный зум 7000% (zoom = 0.0143)
-                    zoom = Math.max(0.0143, Math.min(2, zoom / delta));
+                    zoom = Math.max(0.01, Math.min(2, zoom / delta));
                     render();
                 }
                 lastTouchDist = dist;
@@ -451,13 +596,47 @@
             window.open('https://t.me/empty0_0channel/3', '_blank');
         });
 
-        adminBat.addEventListener('click', () => {
-            if (currentUser && currentUser.id === OWNER_ID) {
-                adminMode = !adminMode;
-                adminBat.classList.toggle('active');
-                showToast(adminMode ? '👑 Админ включён' : '👑 Админ выключен');
+        adminBat.addEventListener('click', openAdminPanel);
+        document.getElementById('adminBackBtn').addEventListener('click', closeAdminPanel);
+
+        document.getElementById('adminSetCooldown').addEventListener('click', () => {
+            let val = parseInt(document.getElementById('adminCooldownInput').value);
+            if (val > 0) {
+                cooldown = val * 1000;
+                showToast('✅ Кулдаун: ' + val + 'с');
+                updateAdminPanel();
+            }
+        });
+
+        document.getElementById('adminBlockBtn').addEventListener('click', () => {
+            let id = parseInt(document.getElementById('adminBlockInput').value);
+            if (id && id !== OWNER_ID) {
+                blockedUsers.add(id);
+                saveBlocked();
+                showToast('⛔ Заблокирован ID: ' + id);
+                document.getElementById('adminBlockInput').value = '';
             } else {
-                showToast('❌ Только для владельца');
+                showToast('❌ Нельзя заблокировать владельца');
+            }
+        });
+
+        document.getElementById('adminUnblockBtn').addEventListener('click', () => {
+            let id = parseInt(document.getElementById('adminBlockInput').value);
+            if (id) {
+                blockedUsers.delete(id);
+                saveBlocked();
+                showToast('✅ Разблокирован ID: ' + id);
+                document.getElementById('adminBlockInput').value = '';
+            }
+        });
+
+        document.getElementById('adminClearPixels').addEventListener('click', () => {
+            if (confirm('⚠️ Точно очистить все пиксели?')) {
+                pixels = new Array(SIZE * SIZE).fill(null);
+                savePixels();
+                render();
+                showToast('🗑 Холст очищен');
+                updateAdminPanel();
             }
         });
 
