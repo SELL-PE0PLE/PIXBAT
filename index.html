@@ -101,20 +101,7 @@
         <div class="stat"><span>Статус</span><span id="pStatus">✅</span></div>
     </div>
 </div>
-
-<!-- Кнопка-мышь (админка, только для владельца) -->
-<div class="admin-bat" id="adminBat">🦇</div>
-
-<div class="profile-nav" id="profileNav">
-    <button id="profileBattleBtn">⚔️ Битва</button>
-    <button class="active" id="profileProfileBtn">👤 Profile</button>
-</div>
-
-<div class="bottom-nav" id="mainNav">
-    <button class="active" id="tabBattle">⚔️ Битва</button>
-    <button id="tabProfile">👤 Profile</button>
-</div>
-<script>
+    <script>
 (function() {
     const SIZE = 1000;
     const OWNER_ID = 1393765131;
@@ -263,11 +250,9 @@
             }
         }
 
-        // ============ СЕТКА ИСПРАВЛЕНА ============
         if (showGrid) {
             ctx.strokeStyle = 'rgba(0,0,0,0.15)';
             ctx.lineWidth = 0.5;
-            // Рисуем сетку по границам КАЖДОГО пикселя
             for (let y = startY; y <= endY && y < SIZE; y += pixelSize) {
                 ctx.beginPath();
                 ctx.moveTo(startX, y);
@@ -282,7 +267,6 @@
             }
         }
 
-        // ИСПРАВЛЕНО: максимальный зум 500% (zoom = 0.2)
         let displayZoom = Math.round((1 / zoom) * 100);
         zoomLabel.textContent = displayZoom + '%';
         
@@ -404,7 +388,6 @@
     }
 
     function setup() {
-        // ============ ЗУМ ============
         let lastTouchDist = 0;
 
         canvas.addEventListener('touchstart', (e) => {
@@ -424,8 +407,8 @@
                 
                 if (lastTouchDist > 0) {
                     let delta = dist / lastTouchDist;
-                    // ИСПРАВЛЕНО: максимальный зум 500% (zoom = 0.2)
-                    zoom = Math.max(0.2, Math.min(2, zoom / delta));
+                    // ИСПРАВЛЕНО: максимальный зум 3000% (zoom = 0.0333)
+                    zoom = Math.max(0.0333, Math.min(2, zoom / delta));
                     render();
                 }
                 lastTouchDist = dist;
@@ -436,7 +419,6 @@
             lastTouchDist = 0;
         }, { passive: true });
 
-        // Клик
         canvas.addEventListener('click', (e) => handleClick(e.clientX, e.clientY));
         canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length === 1) {
@@ -445,7 +427,6 @@
             }
         }, { passive: true });
 
-        // Сетка
         let gridBtn = document.getElementById('gridBtn');
         gridBtn.addEventListener('click', () => {
             showGrid = !showGrid;
@@ -453,12 +434,10 @@
             render();
         });
 
-        // Поддержка
         document.getElementById('supportBtn').addEventListener('click', () => {
             window.open('https://t.me/empty0_0channel/3', '_blank');
         });
 
-        // Кнопка-мышь (админка)
         adminBat.addEventListener('click', () => {
             if (currentUser && currentUser.id === OWNER_ID) {
                 adminMode = !adminMode;
@@ -469,7 +448,6 @@
             }
         });
 
-        // Профиль
         function openProfile() {
             document.getElementById('tabProfile').classList.add('active');
             document.getElementById('tabBattle').classList.remove('active');
