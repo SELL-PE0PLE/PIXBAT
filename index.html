@@ -24,33 +24,6 @@
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(10,10,26,0.95); backdrop-filter: blur(12px); display: flex; justify-content: space-around; padding: 8px 0 12px 0; border-top: 1px solid #2a2a4a; z-index: 10; }
         .bottom-nav button { background: transparent; border: none; color: #666; font-size: 13px; font-weight: 500; padding: 4px 20px; border-radius: 20px; cursor: pointer; }
         .bottom-nav button.active { color: #e94560; background: rgba(233,69,96,0.1); }
-        
-        /* Кнопка-мышь (админка) */
-        .admin-bat {
-            position: fixed;
-            bottom: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 60px;
-            background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            color: white;
-            cursor: pointer;
-            z-index: 15;
-            transition: 0.3s;
-            backdrop-filter: blur(8px);
-            box-shadow: 0 0 30px rgba(255,255,255,0.1);
-        }
-        .admin-bat.show { display: flex; }
-        .admin-bat:active { transform: translateX(-50%) scale(0.9); }
-        .admin-bat.active { border-color: #e94560; box-shadow: 0 0 40px rgba(233,69,96,0.4); }
-        
         .profile-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a1a; z-index: 20; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
         .profile-page.show { display: flex; }
         .profile-page .info { display: flex; align-items: center; gap: 14px; margin: 10px 0 16px 0; }
@@ -68,76 +41,6 @@
         .profile-nav button { background: transparent; border: none; color: #666; font-size: 13px; font-weight: 500; padding: 4px 20px; border-radius: 20px; cursor: pointer; }
         .profile-nav button.active { color: #e94560; background: rgba(233,69,96,0.1); }
         @media (max-width: 400px) { .color-btn { width: 26px; height: 26px; } }
-
-        /* ===== АДМИН-ПАНЕЛЬ ===== */
-        .admin-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #0a0a1a;
-            z-index: 30;
-            display: none;
-            flex-direction: column;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        .admin-panel.show { display: flex; }
-        .admin-panel h2 { color: #e94560; font-size: 20px; margin-bottom: 16px; }
-        .admin-panel .back-btn {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid #2a2a4a;
-            color: #ccc;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
-            margin-bottom: 16px;
-            align-self: flex-start;
-        }
-        .admin-panel .back-btn:hover { background: rgba(255,255,255,0.1); }
-        .admin-panel .section {
-            background: rgba(0,0,0,0.3);
-            border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 12px;
-        }
-        .admin-panel .section h3 { color: #eee; font-size: 15px; margin-bottom: 10px; }
-        .admin-panel .section label { color: #888; font-size: 13px; display: block; margin: 6px 0; }
-        .admin-panel .section input[type="number"],
-        .admin-panel .section input[type="text"] {
-            width: 100%;
-            padding: 8px 12px;
-            border-radius: 10px;
-            border: 1px solid #2a2a4a;
-            background: rgba(255,255,255,0.05);
-            color: #eee;
-            font-size: 14px;
-            margin: 4px 0 10px 0;
-        }
-        .admin-panel .section button {
-            background: rgba(233,69,96,0.2);
-            border: 1px solid #e94560;
-            color: #e94560;
-            padding: 6px 14px;
-            border-radius: 16px;
-            font-size: 13px;
-            cursor: pointer;
-            margin: 4px 6px 4px 0;
-        }
-        .admin-panel .section button:hover { background: rgba(233,69,96,0.3); }
-        .admin-panel .section .stat-row {
-            display: flex;
-            justify-content: space-between;
-            color: #aaa;
-            font-size: 13px;
-            padding: 4px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .admin-panel .section .stat-row span:last-child { color: #eee; }
-        .admin-panel .danger { border-color: #e94560; }
-        .admin-panel .danger button { border-color: #e94560; color: #e94560; }
     </style>
 </head>
 <body>
@@ -172,44 +75,6 @@
     </div>
 </div>
 
-<!-- ===== АДМИН-ПАНЕЛЬ ===== -->
-<div class="admin-panel" id="adminPanel">
-    <button class="back-btn" id="adminBackBtn">← Назад</button>
-    <h2>👑 Админ-панель</h2>
-    
-    <div class="section">
-        <h3>📊 Статистика</h3>
-        <div class="stat-row"><span>Всего пикселей</span><span id="adminTotalPixels">0</span></div>
-        <div class="stat-row"><span>Всего игроков</span><span id="adminTotalPlayers">0</span></div>
-    </div>
-
-    <div class="section">
-        <h3>⏱ Кулдаун</h3>
-        <label>Секунд между пикселями</label>
-        <input type="number" id="adminCooldownInput" value="10" min="1" max="3600">
-        <button id="adminSetCooldown">Сохранить</button>
-    </div>
-
-    <div class="section danger">
-        <h3>🚫 Блокировка</h3>
-        <label>ID пользователя для блокировки</label>
-        <input type="text" id="adminBlockInput" placeholder="Введите ID">
-        <button id="adminBlockBtn">⛔ Заблокировать</button>
-        <button id="adminUnblockBtn">✅ Разблокировать</button>
-        <div style="margin-top:8px;color:#888;font-size:12px;">
-            Заблокированные: <span id="adminBlockedList">—</span>
-        </div>
-    </div>
-
-    <div class="section danger">
-        <h3>🗑 Очистка холста</h3>
-        <button id="adminClearPixels" style="background:rgba(233,69,96,0.3);border-color:#e94560;color:#e94560;">⚠️ Очистить все пиксели</button>
-    </div>
-</div>
-
-<!-- Кнопка-мышь (админка, только для владельца) -->
-<div class="admin-bat" id="adminBat">🦇</div>
-
 <div class="profile-nav" id="profileNav">
     <button id="profileBattleBtn">⚔️ Битва</button>
     <button class="active" id="profileProfileBtn">👤 Profile</button>
@@ -218,11 +83,10 @@
 <div class="bottom-nav" id="mainNav">
     <button class="active" id="tabBattle">⚔️ Битва</button>
     <button id="tabProfile">👤 Profile</button>
-    </div>
-    <script>
+</div>
+<script>
 (function() {
     const SIZE = 1000;
-    const OWNER_ID = 1393765131;
     const COLORS = [
         { name: 'Без цвета', value: null },
         { name: 'Белый', value: '#FFFFFF' },
@@ -241,9 +105,7 @@
     let selectedColor = null;
     let zoom = 1;
     let showGrid = false;
-    let adminMode = false;
     let currentUser = null;
-    let blockedUsers = new Set();
     let canPlace = false;
     let cooldown = 10000;
 
@@ -255,8 +117,6 @@
     const profilePage = document.getElementById('profilePage');
     const profileNav = document.getElementById('profileNav');
     const mainNav = document.getElementById('mainNav');
-    const adminBat = document.getElementById('adminBat');
-    const adminPanel = document.getElementById('adminPanel');
 
     function zoomIn() {
         zoom = Math.max(0.01, zoom / 1.3);
@@ -268,7 +128,7 @@
         render();
     }
 
-    // ===== НОВАЯ СИСТЕМА ПОЛУЧЕНИЯ ДАННЫХ =====
+    // ===== ПОЛУЧЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ (ТОЛЬКО ID И ПОЛНОЕ ИМЯ, БЕЗ USERNAME) =====
     function initUser() {
         // Способ 1: Telegram WebApp
         if (window.Telegram && Telegram.WebApp) {
@@ -282,7 +142,6 @@
                         photo: userData.photo_url || ''
                     };
                     updateProfile();
-                    if (currentUser.id === OWNER_ID) adminBat.classList.add('show');
                     return;
                 }
             } catch(e) {
@@ -290,7 +149,7 @@
             }
         }
 
-        // Способ 2: Прямой доступ к глобальному объекту (запасной вариант)
+        // Способ 2: Прямой доступ к глобальному объекту
         try {
             if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
                 const u = window.Telegram.WebApp.initDataUnsafe.user;
@@ -301,7 +160,6 @@
                         photo: u.photo_url || ''
                     };
                     updateProfile();
-                    if (currentUser.id === OWNER_ID) adminBat.classList.add('show');
                     return;
                 }
             }
@@ -309,7 +167,7 @@
             console.warn('Fallback error:', e);
         }
 
-        // Способ 3: Парсинг из строки (если данные в query string)
+        // Способ 3: Парсинг из query string
         try {
             const params = new URLSearchParams(window.location.search);
             const userParam = params.get('tgWebAppData');
@@ -325,7 +183,6 @@
                             photo: userObj.photo_url || ''
                         };
                         updateProfile();
-                        if (currentUser.id === OWNER_ID) adminBat.classList.add('show');
                         return;
                     }
                 }
@@ -334,21 +191,15 @@
             console.warn('URL parsing error:', e);
         }
 
-        // Если ничего не сработало - ошибка
-        showToast('⚠️ Не удалось получить данные пользователя');
-        currentUser = { id: 0, name: 'Гость', photo: '' };
-        updateProfile();
+        // Если ничего не сработало - показываем ошибку
+        showToast('❌ Ошибка: не удалось получить данные пользователя Telegram');
+        console.error('Не удалось получить данные пользователя. Запустите приложение через Telegram.');
     }
 
     function updateProfile() {
         if (!currentUser) return;
         
-        let displayName = currentUser.name;
-        if (currentUser.id === OWNER_ID) {
-            displayName = currentUser.name + ' ✅';
-        }
-        
-        document.getElementById('profileName').textContent = displayName;
+        document.getElementById('profileName').textContent = currentUser.name;
         document.getElementById('profileId').textContent = 'ID: ' + currentUser.id;
         
         if (currentUser.photo) {
@@ -362,10 +213,8 @@
         document.getElementById('pLast').textContent = stats.last ? new Date(stats.last).toLocaleDateString() : '—';
         document.getElementById('pTotal').textContent = stats.total || 0;
         
-        let blocked = blockedUsers.has(currentUser.id);
-        let status = document.getElementById('pStatus');
-        status.textContent = blocked ? '⛔ Заблокирован' : '✅ Активен';
-        status.style.color = blocked ? '#e94560' : '#4caf50';
+        document.getElementById('pStatus').textContent = '✅ Активен';
+        document.getElementById('pStatus').style.color = '#4caf50';
     }
 
     function getStats(id) {
@@ -378,18 +227,6 @@
         let data = JSON.parse(localStorage.getItem('pixelStats') || '{}');
         data[id] = stats;
         localStorage.setItem('pixelStats', JSON.stringify(data));
-    }
-
-    function loadBlocked() {
-        try {
-            let data = JSON.parse(localStorage.getItem('blockedUsers') || '[]');
-            blockedUsers = new Set(data);
-        } catch(e) { blockedUsers = new Set(); }
-    }
-
-    function saveBlocked() {
-        localStorage.setItem('blockedUsers', JSON.stringify([...blockedUsers]));
-        updateAdminPanel();
     }
 
     function loadPixels() {
@@ -490,7 +327,10 @@
     let lastClick = 0;
 
     function handleClick(clientX, clientY) {
-        if (!currentUser) { showToast('⚠️ Ошибка пользователя'); return; }
+        if (!currentUser || !currentUser.id) { 
+            showToast('❌ Ошибка: пользователь не определён'); 
+            return; 
+        }
 
         if (!canPlace && selectedColor !== null) {
             showToast('🔍 Приблизьтесь (5000%+) чтобы ставить');
@@ -510,24 +350,6 @@
             } else {
                 showToast('⬜ Пусто (' + x + ',' + y + ')');
             }
-            return;
-        }
-
-        if (blockedUsers.has(currentUser.id) && currentUser.id !== OWNER_ID) {
-            showToast('⛔ Ты заблокирован!');
-            return;
-        }
-
-        if (adminMode && currentUser.id === OWNER_ID) {
-            pixels[idx] = { 
-                color: selectedColor, 
-                id: currentUser.id, 
-                name: currentUser.name,
-                time: Date.now() 
-            };
-            render();
-            showToast('👑 Админ (' + x + ',' + y + ')');
-            savePixels();
             return;
         }
 
@@ -584,40 +406,10 @@
         });
     }
 
-    // ===== АДМИН-ПАНЕЛЬ =====
-    function updateAdminPanel() {
-        if (currentUser && currentUser.id === OWNER_ID) {
-            let totalPixels = pixels.filter(p => p !== null).length;
-            document.getElementById('adminTotalPixels').textContent = totalPixels;
-            
-            let players = new Set();
-            for (let p of pixels) {
-                if (p && p.id) players.add(p.id);
-            }
-            document.getElementById('adminTotalPlayers').textContent = players.size;
-            
-            document.getElementById('adminBlockedList').textContent = [...blockedUsers].join(', ') || '—';
-            document.getElementById('adminCooldownInput').value = cooldown / 1000;
-        }
-    }
-
-    function openAdminPanel() {
-        if (currentUser && currentUser.id === OWNER_ID) {
-            adminPanel.classList.add('show');
-            updateAdminPanel();
-        } else {
-            showToast('❌ Только для владельца');
-        }
-    }
-
-    function closeAdminPanel() {
-        adminPanel.classList.remove('show');
-    }
-
     function setup() {
         let lastTouchDist = 0;
 
-        // ===== ЗУМ НА МОБИЛКЕ (мультитач) =====
+        // Зум на мобилке (мультитач)
         canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
                 let dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -648,7 +440,7 @@
             lastTouchDist = 0;
         }, { passive: true });
 
-        // ===== ЗУМ НА ПК (только колёсико мыши) =====
+        // Зум на ПК
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             if (e.deltaY < 0) {
@@ -658,7 +450,7 @@
             }
         }, { passive: false });
 
-        // ===== КЛИК =====
+        // Клик
         canvas.addEventListener('click', (e) => handleClick(e.clientX, e.clientY));
         canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length === 1) {
@@ -667,7 +459,7 @@
             }
         }, { passive: true });
 
-        // ===== СЕТКА =====
+        // Сетка
         let gridBtn = document.getElementById('gridBtn');
         gridBtn.addEventListener('click', () => {
             showGrid = !showGrid;
@@ -675,57 +467,12 @@
             render();
         });
 
-        // ===== ПОДДЕРЖКА =====
+        // Поддержка
         document.getElementById('supportBtn').addEventListener('click', () => {
             window.open('https://t.me/empty0_0channel/3', '_blank');
         });
 
-        // ===== АДМИНКА =====
-        adminBat.addEventListener('click', openAdminPanel);
-        document.getElementById('adminBackBtn').addEventListener('click', closeAdminPanel);
-
-        document.getElementById('adminSetCooldown').addEventListener('click', () => {
-            let val = parseInt(document.getElementById('adminCooldownInput').value);
-            if (val > 0) {
-                cooldown = val * 1000;
-                showToast('✅ Кулдаун: ' + val + 'с');
-                updateAdminPanel();
-            }
-        });
-
-        document.getElementById('adminBlockBtn').addEventListener('click', () => {
-            let id = parseInt(document.getElementById('adminBlockInput').value);
-            if (id && id !== OWNER_ID) {
-                blockedUsers.add(id);
-                saveBlocked();
-                showToast('⛔ Заблокирован ID: ' + id);
-                document.getElementById('adminBlockInput').value = '';
-            } else {
-                showToast('❌ Нельзя заблокировать владельца');
-            }
-        });
-
-        document.getElementById('adminUnblockBtn').addEventListener('click', () => {
-            let id = parseInt(document.getElementById('adminBlockInput').value);
-            if (id) {
-                blockedUsers.delete(id);
-                saveBlocked();
-                showToast('✅ Разблокирован ID: ' + id);
-                document.getElementById('adminBlockInput').value = '';
-            }
-        });
-
-        document.getElementById('adminClearPixels').addEventListener('click', () => {
-            if (confirm('⚠️ Точно очистить все пиксели?')) {
-                pixels = new Array(SIZE * SIZE).fill(null);
-                savePixels();
-                render();
-                showToast('🗑 Холст очищен');
-                updateAdminPanel();
-            }
-        });
-
-        // ===== ПРОФИЛЬ =====
+        // Профиль
         function openProfile() {
             document.getElementById('tabProfile').classList.add('active');
             document.getElementById('tabBattle').classList.remove('active');
@@ -752,7 +499,6 @@
             updateProfile();
         });
 
-        loadBlocked();
         loadPixels();
         initUser();
         renderPalette();
