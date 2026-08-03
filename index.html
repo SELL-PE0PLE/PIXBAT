@@ -260,7 +260,7 @@
     <button class="active" id="tabBattle">⚔️ Битва</button>
     <button id="tabProfile">👤 Profile</button>
 </div>
-<script>
+    <script>
 (function() {
     const SIZE = 1000;
     const OWNER_ID = 1393765131;
@@ -314,29 +314,39 @@
         if (window.Telegram && Telegram.WebApp) {
             try {
                 Telegram.WebApp.ready();
-                let u = Telegram.WebApp.initDataUnsafe?.user;
-                if (u) {
-                    let fullName = u.first_name || '';
-                    if (u.last_name) {
-                        fullName += ' ' + u.last_name;
+                setTimeout(() => {
+                    let u = Telegram.WebApp.initDataUnsafe?.user;
+                    if (u && u.id) {
+                        let fullName = u.first_name || '';
+                        if (u.last_name) {
+                            fullName += ' ' + u.last_name;
+                        }
+                        currentUser = { 
+                            id: u.id, 
+                            name: fullName.trim() || 'Игрок',
+                            photo: u.photo_url || '' 
+                        };
+                        updateProfile();
+                        if (currentUser.id === OWNER_ID) {
+                            adminBat.classList.add('show');
+                        }
+                    } else {
+                        showToast('⚠️ Ошибка: войдите в Telegram');
+                        currentUser = { 
+                            id: 0, 
+                            name: 'Ошибка',
+                            photo: '' 
+                        };
+                        updateProfile();
                     }
-                    currentUser = { 
-                        id: u.id, 
-                        name: fullName.trim() || 'Игрок',
-                        photo: u.photo_url || '' 
-                    };
-                    updateProfile();
-                    if (currentUser.id === OWNER_ID) {
-                        adminBat.classList.add('show');
-                    }
-                    return;
-                }
+                }, 100);
+                return;
             } catch(e) {
                 console.error('Ошибка инициализации Telegram:', e);
             }
         }
         
-        showToast('⚠️ Ошибка: войдите в Telegram');
+        showToast('⚠️ Ошибка: откройте в Telegram');
         currentUser = { 
             id: 0, 
             name: 'Ошибка',
@@ -458,15 +468,28 @@
         let displayZoom = Math.round((1 / zoom) * 100);
         zoomLabel.textContent = displayZoom + '%';
         
-        canPlace = zoom <= 0.333;
+        canPlace = zoom <= 0.02;
     }
 
     function getCoords(clientX, clientY) {
         let rect = canvas.getBoundingClientRect();
-        let x = Math.round((clientX - rect.left) / rect.width * SIZE);
-        let y = Math.round((clientY - rect.top) / rect.height * SIZE);
+        
+        let normX = (clientX - rect.left) / rect.width;
+        let normY = (clientY - rect.top) / rect.height;
+        
+        normX = Math.max(0, Math.min(1, normX));
+        normY = Math.max(0, Math.min(1, normY));
+        
+        let viewSize = 1 / zoom;
+        let offsetX = (1 - viewSize) / 2;
+        let offsetY = (1 - viewSize) / 2;
+        
+        let x = Math.round((offsetX + normX * viewSize) * SIZE);
+        let y = Math.round((offsetY + normY * viewSize) * SIZE);
+        
         x = Math.max(0, Math.min(SIZE - 1, x));
         y = Math.max(0, Math.min(SIZE - 1, y));
+        
         return { x, y };
     }
 
@@ -485,7 +508,7 @@
         if (!currentUser) { showToast('⚠️ Ошибка пользователя'); return; }
 
         if (!canPlace && selectedColor !== null) {
-            showToast('🔍 Приблизьтесь (300%+) чтобы ставить');
+            showToast('🔍 Приблизьтесь (5000%+) чтобы ставить');
             return;
         }
 
@@ -644,17 +667,11 @@
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             if (e.deltaY < 0) {
-                // Крутим вверх → приближаем
                 zoomIn();
             } else {
-                // Крутим вниз → отдаляем
                 zoomOut();
             }
         }, { passive: false });
-
-        // ===== КНОПКИ + и − =====
-        document.getElementById('zoomInBtn').addEventListener('click', zoomIn);
-        document.getElementById('zoomOutBtn').addEventListener('click', zoomOut);
 
         // ===== КЛИК =====
         canvas.addEventListener('click', (e) => handleClick(e.clientX, e.clientY));
@@ -757,11 +774,12 @@
         render();
 
         setInterval(savePixels, 5000);
-        showToast('👋 Кликни на холст!');
+        // ===== УБРАЛ СТАРТОВЫЙ ТОСТ =====
+        // showToast('👋 Кликни на холст!');
     }
 
     document.addEventListener('DOMContentLoaded', setup);
 })();
 </script>
 </body>
-    </html>
+</html>
