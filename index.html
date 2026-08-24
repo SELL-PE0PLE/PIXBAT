@@ -155,8 +155,8 @@
     </div>
     <div class="palette" id="palette"></div>
     <div id="toast" class="toast">👋 Кликни на холст!</div>
-</div>
-<div class="profile-page" id="profilePage">
+    </div>
+    <div class="profile-page" id="profilePage">
     <div class="info">
         <div class="avatar" id="profileAvatar">👤</div>
         <div>
@@ -218,8 +218,8 @@
 <div class="bottom-nav" id="mainNav">
     <button class="active" id="tabBattle">⚔️ Битва</button>
     <button id="tabProfile">👤 Profile</button>
-    </div>
-    <script>
+</div>
+<script>
 (function() {
     const SIZE = 1000;
     const OWNER_ID = 1393765131;
@@ -408,7 +408,7 @@
         }
 
         if (showGrid) {
-            ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+            ctx.strokeStyle = 'rgba(0,0,0,0.25)';
             ctx.lineWidth = 0.5;
             for (let y = startY; y <= endY && y < SIZE; y += pixelSize) {
                 ctx.beginPath();
@@ -424,10 +424,23 @@
             }
         }
 
-        let displayZoom = Math.round((1 / zoom) * 100);
+        // ===== НОВАЯ ШКАЛА ПРОЦЕНТОВ =====
+        let realZoom = Math.round((1 / zoom) * 100);
+        let displayZoom;
+        
+        if (realZoom <= 100) {
+            displayZoom = realZoom;
+        } else {
+            let extra = realZoom - 100;
+            let compressedExtra = Math.log10(extra + 1) * 100;
+            displayZoom = Math.round(100 + compressedExtra);
+            displayZoom = Math.min(displayZoom, 1000);
+        }
+        
         zoomLabel.textContent = displayZoom + '%';
         
-        canPlace = zoom <= 0.02;
+        // ===== ПОРОГ УСТАНОВКИ: реальный зум 10000% =====
+        canPlace = zoom <= 0.01;
     }
 
     // ===== КООРДИНАТЫ С УЧЁТОМ ЗУМА =====
@@ -469,7 +482,7 @@
         if (!currentUser) { showToast('⚠️ Ошибка пользователя'); return; }
 
         if (!canPlace && selectedColor !== null) {
-            showToast('🔍 Приблизьтесь (5000%+) чтобы ставить');
+            showToast('🔍 Приблизьтесь (1000%+) чтобы ставить');
             return;
         }
 
