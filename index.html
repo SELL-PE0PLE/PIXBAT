@@ -155,8 +155,8 @@
     </div>
     <div class="palette" id="palette"></div>
     <div id="toast" class="toast">👋 Кликни на холст!</div>
-    </div>
-    <div class="profile-page" id="profilePage">
+</div>
+<div class="profile-page" id="profilePage">
     <div class="info">
         <div class="avatar" id="profileAvatar">👤</div>
         <div>
@@ -258,6 +258,7 @@
     const adminBat = document.getElementById('adminBat');
     const adminPanel = document.getElementById('adminPanel');
 
+    // Управление зумом
     function zoomIn() {
         zoom = Math.max(0.01, zoom / 1.3);
         render();
@@ -268,7 +269,7 @@
         render();
     }
 
-    // ===== ПРАВИЛЬНОЕ ПОЛУЧЕНИЕ ДАННЫХ ИЗ TELEGRAM =====
+    // Получение данных пользователя из Telegram
     function initUser() {
         const tg = window.Telegram?.WebApp;
         
@@ -293,6 +294,11 @@
                     language: user.language_code || ''
                 };
                 
+                // Аватарка — первая буква имени
+                const avatarEl = document.getElementById('profileAvatar');
+                const initial = (currentUser.name?.[0] || '👤').toUpperCase();
+                avatarEl.textContent = /[A-Za-zА-Яа-я]/.test(initial) ? initial : '👤';
+                
                 updateProfile();
                 if (currentUser.id === OWNER_ID) {
                     adminBat.classList.add('show');
@@ -312,6 +318,7 @@
         updateProfile();
     }
 
+    // Обновление профиля
     function updateProfile() {
         if (!currentUser) return;
         
@@ -342,6 +349,7 @@
         status.style.color = blocked ? '#e94560' : '#4caf50';
     }
 
+    // Работа со статистикой игрока
     function getStats(id) {
         let data = JSON.parse(localStorage.getItem('pixelStats') || '{}');
         if (!data[id]) data[id] = { first: null, last: null, total: 0 };
@@ -354,6 +362,7 @@
         localStorage.setItem('pixelStats', JSON.stringify(data));
     }
 
+    // Работа с заблокированными пользователями
     function loadBlocked() {
         try {
             let data = JSON.parse(localStorage.getItem('blockedUsers') || '[]');
@@ -366,6 +375,7 @@
         updateAdminPanel();
     }
 
+    // Работа с пикселями
     function loadPixels() {
         try {
             let data = JSON.parse(localStorage.getItem('pixels') || '[]');
@@ -379,6 +389,7 @@
         localStorage.setItem('pixels', JSON.stringify(pixels));
     }
 
+    // Отрисовка холста
     function render() {
         let rect = canvas.getBoundingClientRect();
         let displaySize = Math.min(rect.width, rect.height);
@@ -397,6 +408,7 @@
         let endX = Math.floor((1 + 1/zoom) / 2 * SIZE);
         let endY = Math.floor((1 + 1/zoom) / 2 * SIZE);
 
+        // Рисуем пиксели
         for (let y = startY; y < endY && y < SIZE; y += pixelSize) {
             for (let x = startX; x < endX && x < SIZE; x += pixelSize) {
                 let idx = y * SIZE + x;
@@ -407,6 +419,7 @@
             }
         }
 
+        // Сетка
         if (showGrid) {
             ctx.strokeStyle = 'rgba(0,0,0,0.25)';
             ctx.lineWidth = 0.5;
@@ -424,7 +437,7 @@
             }
         }
 
-        // ===== НОВАЯ ШКАЛА ПРОЦЕНТОВ =====
+        // Отображение процентов зума (логарифмическая шкала после 100%)
         let realZoom = Math.round((1 / zoom) * 100);
         let displayZoom;
         
@@ -439,11 +452,11 @@
         
         zoomLabel.textContent = displayZoom + '%';
         
-        // ===== ПОРОГ УСТАНОВКИ: реальный зум 10000% =====
+        // Можно ставить пиксель только при зуме 10000% (zoom <= 0.01)
         canPlace = zoom <= 0.01;
     }
 
-    // ===== КООРДИНАТЫ С УЧЁТОМ ЗУМА =====
+    // Получение координат клика с учётом зума и смещения
     function getCoords(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
         
@@ -467,6 +480,7 @@
         return { x, y };
     }
 
+    // Всплывающие сообщения
     let toastTimer;
 
     function showToast(msg) {
@@ -478,6 +492,7 @@
 
     let lastClick = 0;
 
+    // Обработка клика по холсту
     function handleClick(clientX, clientY) {
         if (!currentUser) { showToast('⚠️ Ошибка пользователя'); return; }
 
@@ -491,6 +506,7 @@
 
         let idx = y * SIZE + x;
 
+        // Режим просмотра — без выбранного цвета
         if (selectedColor === null) {
             if (pixels[idx]) {
                 let time = Math.floor((Date.now() - pixels[idx].time) / (1000*60*60*24));
@@ -502,11 +518,13 @@
             return;
         }
 
+        // Проверка на блокировку
         if (blockedUsers.has(currentUser.id) && currentUser.id !== OWNER_ID) {
             showToast('⛔ Ты заблокирован!');
             return;
         }
 
+        // Админ-режим — без кулдауна и проверки на занятость
         if (adminMode && currentUser.id === OWNER_ID) {
             pixels[idx] = { 
                 color: selectedColor, 
@@ -520,17 +538,20 @@
             return;
         }
 
+        // Кулдаун
         let now = Date.now();
         if (now - lastClick < cooldown) {
             showToast('⏳ Подожди ' + Math.ceil((cooldown - (now - lastClick))/1000) + 'с');
             return;
         }
 
+        // Проверка на занятость
         if (pixels[idx]) {
             showToast('❌ Занято (' + (pixels[idx].name || 'anon') + ')');
             return;
         }
 
+        // Установка пикселя
         pixels[idx] = { 
             color: selectedColor, 
             id: currentUser.id, 
@@ -551,6 +572,7 @@
         savePixels();
     }
 
+    // Отрисовка палитры
     function renderPalette() {
         palette.innerHTML = '';
         COLORS.forEach(c => {
@@ -603,10 +625,11 @@
         adminPanel.classList.remove('show');
     }
 
+    // ===== ИНИЦИАЛИЗАЦИЯ =====
     function setup() {
         let lastTouchDist = 0;
 
-        // ===== ЗУМ НА МОБИЛКЕ (мультитач) =====
+        // Зум на мобилке (мультитач)
         canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
                 let dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -637,7 +660,7 @@
             lastTouchDist = 0;
         }, { passive: true });
 
-        // ===== ЗУМ НА ПК (колёсико мыши) =====
+        // Зум на ПК (колёсико мыши)
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             if (e.deltaY < 0) {
@@ -647,7 +670,7 @@
             }
         }, { passive: false });
 
-        // ===== КЛИК =====
+        // Клик по холсту
         canvas.addEventListener('click', (e) => handleClick(e.clientX, e.clientY));
         canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length === 1) {
@@ -656,7 +679,7 @@
             }
         }, { passive: true });
 
-        // ===== СЕТКА =====
+        // Сетка
         let gridBtn = document.getElementById('gridBtn');
         gridBtn.addEventListener('click', () => {
             showGrid = !showGrid;
@@ -664,15 +687,16 @@
             render();
         });
 
-        // ===== ПОДДЕРЖКА =====
+        // Поддержка
         document.getElementById('supportBtn').addEventListener('click', () => {
             window.open('https://t.me/empty0_0channel/3', '_blank');
         });
 
-        // ===== АДМИНКА =====
+        // Админка
         adminBat.addEventListener('click', openAdminPanel);
         document.getElementById('adminBackBtn').addEventListener('click', closeAdminPanel);
 
+        // Настройка кулдауна
         document.getElementById('adminSetCooldown').addEventListener('click', () => {
             let val = parseInt(document.getElementById('adminCooldownInput').value);
             if (val > 0) {
@@ -682,6 +706,7 @@
             }
         });
 
+        // Блокировка пользователей
         document.getElementById('adminBlockBtn').addEventListener('click', () => {
             let id = parseInt(document.getElementById('adminBlockInput').value);
             if (id && id !== OWNER_ID) {
@@ -704,6 +729,7 @@
             }
         });
 
+        // Очистка холста
         document.getElementById('adminClearPixels').addEventListener('click', () => {
             if (confirm('⚠️ Точно очистить все пиксели?')) {
                 pixels = new Array(SIZE * SIZE).fill(null);
@@ -714,7 +740,7 @@
             }
         });
 
-        // ===== ПРОФИЛЬ =====
+        // Профиль
         function openProfile() {
             document.getElementById('tabProfile').classList.add('active');
             document.getElementById('tabBattle').classList.remove('active');
