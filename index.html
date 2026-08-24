@@ -7,24 +7,160 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-        body { background: #0a0a1a; display: flex; justify-content: center; padding: 0; font-family: -apple-system, sans-serif; min-height: 100vh; touch-action: pan-x pan-y; overflow: hidden; }
-        #app { max-width: 500px; width: 100%; height: 100vh; display: flex; flex-direction: column; padding: 10px 12px 70px 12px; }
+        
+        /* ===== ПРИНУДИТЕЛЬНАЯ ТЁМНАЯ ТЕМА ===== */
+        body {
+            background: #0a0a1a;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            padding: 0;
+            font-family: -apple-system, sans-serif;
+            min-height: 100vh;
+            touch-action: pan-x pan-y;
+            overflow: hidden;
+        }
+        
+        #app {
+            max-width: 500px;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 10px 12px 70px 12px;
+            background: #0a0a1a;
+        }
+        
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-shrink: 0; }
         h1 { color: #e94560; font-size: 22px; }
-        .support { background: linear-gradient(135deg, #e94560, #c23152); color: white; border: none; padding: 8px; border-radius: 30px; font-size: 13px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 8px; flex-shrink: 0; }
-        .canvas-wrap { width: 100%; aspect-ratio: 1/1; background: #2a2a3a; border-radius: 16px; overflow: hidden; border: 3px solid #e94560; position: relative; touch-action: pan-x pan-y; flex-shrink: 0; }
-        #canvas { width: 100%; height: 100%; image-rendering: pixelated; cursor: crosshair; display: block; touch-action: pan-x pan-y; background: #ffffff; }
-        .zoom-label { position: absolute; bottom: 8px; right: 12px; background: rgba(0,0,0,0.7); color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 11px; pointer-events: none; border: 1px solid #e94560; }
-        .controls { display: flex; gap: 6px; justify-content: center; margin: 6px 0; flex-shrink: 0; flex-wrap: wrap; }
-        .controls button { background: rgba(255,255,255,0.06); border: 1px solid #2a2a4a; color: #ccc; padding: 4px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; }
-        .controls button.active { background: rgba(233,69,96,0.2); border-color: #e94560; color: #e94560; }
-        .palette { display: flex; gap: 5px; justify-content: center; margin: 4px 0; flex-shrink: 0; flex-wrap: wrap; }
-        .color-btn { width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; flex-shrink: 0; }
-        .color-btn.selected { border-color: white; box-shadow: 0 0 16px rgba(233,69,96,0.5); transform: scale(1.1); }
-        .color-btn.empty { background: repeating-conic-gradient(#ccc 0% 25%, white 0% 50%) 50% / 8px 8px; border-color: #555; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(10,10,26,0.95); backdrop-filter: blur(12px); display: flex; justify-content: space-around; padding: 8px 0 12px 0; border-top: 1px solid #2a2a4a; z-index: 10; }
-        .bottom-nav button { background: transparent; border: none; color: #666; font-size: 13px; font-weight: 500; padding: 4px 20px; border-radius: 20px; cursor: pointer; }
-        .bottom-nav button.active { color: #e94560; background: rgba(233,69,96,0.1); }
+        
+        .support {
+            background: linear-gradient(135deg, #e94560, #c23152);
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+        
+        .canvas-wrap {
+            width: 100%;
+            aspect-ratio: 1/1;
+            background: #1a1a2e;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 3px solid #e94560;
+            position: relative;
+            touch-action: pan-x pan-y;
+            flex-shrink: 0;
+        }
+        
+        #canvas {
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+            cursor: crosshair;
+            display: block;
+            touch-action: pan-x pan-y;
+            background: #ffffff;
+        }
+        
+        .zoom-label {
+            position: absolute;
+            bottom: 8px;
+            right: 12px;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            pointer-events: none;
+            border: 1px solid #e94560;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin: 6px 0;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+        
+        .controls button {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid #2a2a4a;
+            color: #ccc;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .controls button.active {
+            background: rgba(233,69,96,0.2);
+            border-color: #e94560;
+            color: #e94560;
+        }
+        
+        .palette {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            margin: 4px 0;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+        
+        .color-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .color-btn.selected {
+            border-color: white;
+            box-shadow: 0 0 16px rgba(233,69,96,0.5);
+            transform: scale(1.1);
+        }
+        .color-btn.empty {
+            background: repeating-conic-gradient(#ccc 0% 25%, white 0% 50%) 50% / 8px 8px;
+            border-color: #555;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #0a0a1a;
+            backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 12px 0;
+            border-top: 1px solid #2a2a4a;
+            z-index: 10;
+        }
+        .bottom-nav button {
+            background: transparent;
+            border: none;
+            color: #666;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 4px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .bottom-nav button.active {
+            color: #e94560;
+            background: rgba(233,69,96,0.1);
+        }
         
         /* Кнопка-мышь (админка) */
         .admin-bat {
@@ -52,23 +188,128 @@
         .admin-bat:active { transform: translateX(-50%) scale(0.9); }
         .admin-bat.active { border-color: #e94560; box-shadow: 0 0 40px rgba(233,69,96,0.4); }
         
-        .profile-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a1a; z-index: 20; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
+        /* ===== ПРОФИЛЬ ===== */
+        .profile-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a1a;
+            z-index: 20;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
         .profile-page.show { display: flex; }
-        .profile-page .info { display: flex; align-items: center; gap: 14px; margin: 10px 0 16px 0; }
-        .profile-page .avatar { width: 56px; height: 56px; border-radius: 50%; background: #2a2a4a; display: flex; align-items: center; justify-content: center; font-size: 28px; border: 2px solid #e94560; overflow: hidden; flex-shrink: 0; }
-        .profile-page .avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .profile-page .name { font-size: 18px; font-weight: 600; }
-        .profile-page .id { font-size: 13px; color: #888; }
-        .profile-page .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; background: rgba(0,0,0,0.3); padding: 14px; border-radius: 12px; margin-bottom: 16px; }
-        .profile-page .stats .stat { display: flex; justify-content: space-between; font-size: 14px; }
-        .profile-page .stats .stat span:first-child { color: #888; }
-        .profile-page .stats .stat span:last-child { color: #eee; font-weight: 500; }
-        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(10,10,26,0.95); color: white; padding: 10px 20px; border-radius: 30px; border: 1px solid #e94560; font-size: 14px; opacity: 0; transition: 0.3s; z-index: 99; backdrop-filter: blur(8px); white-space: nowrap; pointer-events: none; }
+        .profile-page .info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 10px 0 16px 0;
+        }
+        .profile-page .avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #2a2a4a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            border: 2px solid #e94560;
+            overflow: hidden;
+            flex-shrink: 0;
+            color: #ffffff;
+        }
+        .profile-page .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .profile-page .name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .profile-page .id {
+            font-size: 13px;
+            color: #888;
+        }
+        .profile-page .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 16px;
+            background: rgba(0,0,0,0.3);
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        .profile-page .stats .stat {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        .profile-page .stats .stat span:first-child {
+            color: #888;
+        }
+        .profile-page .stats .stat span:last-child {
+            color: #eee;
+            font-weight: 500;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10,10,26,0.95);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 1px solid #e94560;
+            font-size: 14px;
+            opacity: 0;
+            transition: 0.3s;
+            z-index: 99;
+            backdrop-filter: blur(8px);
+            white-space: nowrap;
+            pointer-events: none;
+        }
         .toast.show { opacity: 1; }
-        .profile-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(10,10,26,0.95); backdrop-filter: blur(12px); display: none; justify-content: space-around; padding: 8px 0 12px 0; border-top: 1px solid #2a2a4a; z-index: 25; }
-        .profile-nav button { background: transparent; border: none; color: #666; font-size: 13px; font-weight: 500; padding: 4px 20px; border-radius: 20px; cursor: pointer; }
-        .profile-nav button.active { color: #e94560; background: rgba(233,69,96,0.1); }
-        @media (max-width: 400px) { .color-btn { width: 26px; height: 26px; } }
+        
+        .profile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #0a0a1a;
+            backdrop-filter: blur(12px);
+            display: none;
+            justify-content: space-around;
+            padding: 8px 0 12px 0;
+            border-top: 1px solid #2a2a4a;
+            z-index: 25;
+        }
+        .profile-nav button {
+            background: transparent;
+            border: none;
+            color: #666;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 4px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .profile-nav button.active {
+            color: #e94560;
+            background: rgba(233,69,96,0.1);
+        }
+        
+        @media (max-width: 400px) {
+            .color-btn { width: 26px; height: 26px; }
+        }
 
         /* ===== АДМИН-ПАНЕЛЬ ===== */
         .admin-panel {
@@ -85,7 +326,11 @@
             overflow-y: auto;
         }
         .admin-panel.show { display: flex; }
-        .admin-panel h2 { color: #e94560; font-size: 20px; margin-bottom: 16px; }
+        .admin-panel h2 {
+            color: #e94560;
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
         .admin-panel .back-btn {
             background: rgba(255,255,255,0.06);
             border: 1px solid #2a2a4a;
@@ -104,8 +349,17 @@
             padding: 14px;
             margin-bottom: 12px;
         }
-        .admin-panel .section h3 { color: #eee; font-size: 15px; margin-bottom: 10px; }
-        .admin-panel .section label { color: #888; font-size: 13px; display: block; margin: 6px 0; }
+        .admin-panel .section h3 {
+            color: #eee;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+        .admin-panel .section label {
+            color: #888;
+            font-size: 13px;
+            display: block;
+            margin: 6px 0;
+        }
         .admin-panel .section input[type="number"],
         .admin-panel .section input[type="text"] {
             width: 100%;
@@ -219,8 +473,8 @@
 <div class="bottom-nav" id="mainNav">
     <button class="active" id="tabBattle">⚔️ Битва</button>
     <button id="tabProfile">👤 Profile</button>
-    </div>
-    <script>
+</div>
+<script>
 (function() {
     const SIZE = 1000;
     const OWNER_ID = 1393765131;
@@ -272,13 +526,12 @@
 
     // Получение данных пользователя из Telegram
     function initUser() {
-        const tg = window.Telegram?.WebApp;
-        
-        if (tg) {
+        if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+            const tg = Telegram.WebApp;
             tg.expand();
             tg.ready();
             
-            const user = tg.initDataUnsafe?.user || {};
+            const user = tg.initDataUnsafe?.user;
             
             if (user && user.id) {
                 let fullName = user.first_name || '';
@@ -438,7 +691,7 @@
             }
         }
 
-        // Отображение процентов зума (логарифмическая шкала после 100%)
+        // Отображение процентов зума
         let realZoom = Math.round((1 / zoom) * 100);
         let displayZoom;
         
@@ -453,7 +706,7 @@
         
         zoomLabel.textContent = displayZoom + '%';
         
-        // Можно ставить пиксель только при зуме 10000% (zoom <= 0.01)
+        // Можно ставить пиксель только при зуме 10000%
         canPlace = zoom <= 0.01;
     }
 
@@ -507,7 +760,7 @@
 
         let idx = y * SIZE + x;
 
-        // Режим просмотра — без выбранного цвета
+        // Режим просмотра
         if (selectedColor === null) {
             if (pixels[idx]) {
                 let time = Math.floor((Date.now() - pixels[idx].time) / (1000*60*60*24));
@@ -525,7 +778,7 @@
             return;
         }
 
-        // Админ-режим — без кулдауна и проверки на занятость
+        // Админ-режим
         if (adminMode && currentUser.id === OWNER_ID) {
             pixels[idx] = { 
                 color: selectedColor, 
@@ -630,7 +883,7 @@
     function setup() {
         let lastTouchDist = 0;
 
-        // Зум на мобилке (мультитач)
+        // Зум на мобилке
         canvas.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
                 let dx = e.touches[0].clientX - e.touches[1].clientX;
